@@ -45,13 +45,50 @@ export function createApp({ db } = {}) {
     contentSecurityPolicy: { directives: { defaultSrc: ["'none'"], frameAncestors: ["'none'"] } },
     crossOriginEmbedderPolicy: false,
   }));
-  app.use(cors({ origin: env.corsOrigins, credentials: true }));
+  const allowedOrigins = env.corsOrigins.map((s) => s.replace(/\/+$/, ''));
+
+  const corsOptions = {
+    origin: (origin, callback) => {
+      // Allow non-browser requests (mobile apps, curl, server-to-server, cron)
+      if (!origin) return callback(null, true);
+
+      const cleanOrigin = origin.replace(/\/+$/, '');
+
+      // Check configured origins or wildcard
+      if (allowedOrigins.includes(cleanOrigin) || allowedOrigins.includes('*')) {
+        return callback(null, true);
+      }
+
+      // Automatically allow all Vercel deployments (*.vercel.app) and local development
+      if (
+        /^https:\/\/[a-zA-Z0-9_\-.]+\.vercel\.app$/.test(cleanOrigin) ||
+        /^http:\/\/localhost(:\d+)?$/.test(cleanOrigin) ||
+        /^http:\/\/127\.0\.0\.1(:\d+)?$/.test(cleanOrigin)
+      ) {
+        return callback(null, true);
+      }
+
+      logger.warn({ origin: cleanOrigin, allowedOrigins }, 'CORS origin blocked');
+      return callback(null, false);
+    },
+    credentials: true,
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-Id', 'Idempotency-Key', 'Accept'],
+    exposedHeaders: ['X-Request-Id'],
+    optionsSuccessStatus: 204,
+  };
+
+  app.use(cors(corsOptions));
+  app.options('*', cors(corsOptions));
   app.use(express.json({ limit: '20mb' }));
   app.use(express.urlencoded({ extended: false, limit: '20mb' }));
 
   app.use('/api/', apiLimiter);
 
-  app.use('/api/v1', createV1Router(db));
+  const v1Router = createV1Router(db);
+  app.use('/api/v1', v1Router);
+  // Also mount v1Router at root so calls without /api/v1 prefix (e.g. /hospitals, /content/home) resolve seamlessly
+  app.use('/', v1Router);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

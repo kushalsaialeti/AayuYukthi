@@ -1,4 +1,10 @@
-const BASE = import.meta.env.VITE_API_BASE_URL ?? '/api/v1';
+function resolveBaseUrl(raw) {
+  if (!raw) return '/api/v1';
+  const clean = raw.trim().replace(/\/+$/, '');
+  return clean.endsWith('/api/v1') ? clean : `${clean}/api/v1`;
+}
+
+const BASE = resolveBaseUrl(import.meta.env.VITE_API_BASE_URL);
 
 const TOKEN_KEY = 'ay-ops-access';
 const REFRESH_KEY = 'ay-ops-refresh';
