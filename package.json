@@ -20,7 +20,11 @@
     "format:check": "prettier --check .",
     "test": "npm run test --workspaces --if-present",
     "migrate": "npm run migrate --workspace=server",
-    "db:health": "npm run db:health --workspace=server"
+    "db:health": "npm run db:health --workspace=server",
+    "start": "npm start --workspace=@aayuyukthi/server",
+    "start:server": "npm start --workspace=@aayuyukthi/server",
+    "start:prod": "npm run migrate --workspace=@aayuyukthi/server && npm start --workspace=@aayuyukthi/server",
+    "build:server": "npm run build --workspace=@aayuyukthi/server"
   },
   "devDependencies": {
     "eslint": "^9.12.0",
