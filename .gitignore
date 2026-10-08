@@ -1,0 +1,101 @@
+# =============================================================================
+# Dependencies & Package Management
+# =============================================================================
+node_modules/
+.pnp
+.pnp.js
+
+# =============================================================================
+# Build Outputs & Bundler Caches
+# =============================================================================
+dist/
+build/
+out/
+apps/web/dist/
+apps/operations/dist/
+server/dist/
+.vite/
+.cache/
+.parcel-cache/
+.eslintcache
+*.tsbuildinfo
+
+# =============================================================================
+# Environment & Secrets (Never commit secrets / real keys to GitHub)
+# =============================================================================
+.env
+.env.*
+!.env.example
+apps/*/.env
+apps/*/.env.*
+!apps/*/.env.example
+server/.env
+server/.env.*
+!server/.env.example
+
+# =============================================================================
+# Diagnostic Logs & Process Telemetry
+# =============================================================================
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =============================================================================
+# Operating System & Editor Files
+# =============================================================================
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# =============================================================================
+# These are unwanted yet useful in later purposes...
+# (Excluded so GitHub will not have the huge amount of unwanted files right now)
+# =============================================================================
+
+# Local Database Dumps, Backups & Storage
+# (Unwanted yet useful in later purposes for emergency disaster recovery & local DB snapshots)
+*.dump
+*.sql.bak
+*.sql.gz
+pgdata/
+.pglite/
+backups/
+
+# Local Maintenance, Inspection & Dev-Seeding Scripts
+# (Unwanted yet useful in later purposes for developer DB resets, token debugging and demo data)
+server/scripts/clean_and_seed_bhimavaram.js
+server/scripts/clean_seeded_data.js
+server/scripts/inspect_db.js
+server/scripts/issue_customer_session.js
+server/scripts/backup.sh
+server/scripts/restore.sh
+server/scripts/smoke.js
+
+# Load Testing, Performance Benchmarks & Coverage Reports
+# (Unwanted yet useful in later purposes for staging stress tests and capacity audits)
+*.k6.js
+server/scripts/load.k6.js
+server/tests/perf.budget.test.js
+coverage/
+.nyc_output/
+reports/
+
+# Staging Infrastructure & Deployment Overrides
+# (Unwanted yet useful in later purposes when provisioning isolated staging environments)
+docker-compose.staging.yml
+docker-compose.override.yml
+.env.staging.example
+
+# Extended Documentation & Internal Specifications
+# (Unwanted yet useful in later purposes for detailed architecture and deployment references)
+docs/
+

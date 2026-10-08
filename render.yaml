@@ -1,0 +1,61 @@
+# =============================================================================
+# Render Blueprint Specification — AayuYukthi
+# Docs: https://render.com/docs/blueprint-spec
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # 1. Backend Web Service (Render Free/Starter Tier)
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: aayuyukthi-api
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm ci && npm run migrate --workspace=@aayuyukthi/server
+    startCommand: npm run start --workspace=@aayuyukthi/server
+    healthCheckPath: /api/v1/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        sync: false
+      - key: PG_POOL_MAX
+        value: 10
+      - key: LOG_LEVEL
+        value: info
+      - key: KEEP_ALIVE_INTERVAL_MINUTES
+        value: 8
+      - key: RENDER_EXTERNAL_URL
+        fromService:
+          type: web
+          name: aayuyukthi-api
+          property: host
+
+  # ---------------------------------------------------------------------------
+  # 2. Render Cron Job: Every 8-Minute Heartbeat
+  # Runs every 8 minutes to hit the web service and keep both Render and Supabase awake.
+  # Note: The server also includes an automated internal 8-minute self-ping for free-tier users.
+  # ---------------------------------------------------------------------------
+  - type: cron
+    name: aayuyukthi-keep-alive-cron
+    runtime: node
+    plan: starter
+    schedule: "*/8 * * * *"
+    buildCommand: npm ci
+    startCommand: node server/scripts/keep_alive_ping.js
+    envVars:
+      - key: TARGET_URL
+        fromService:
+          type: web
+          name: aayuyukthi-api
+          property: host

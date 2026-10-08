@@ -1,0 +1,364 @@
+/* Customer Dashboard Modular Styles */
+.dash-wrapper {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+@media (min-width: 768px) {
+  .dash-wrapper {
+    padding: 2rem 2rem 5rem;
+  }
+}
+
+/* 1. Header Welcome Bar */
+.dash-welcome-bar {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1.25rem;
+  background-color: var(--cust-surface-container-lowest);
+  padding: 1.5rem 1.75rem;
+  border-radius: 1rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 67, 73, 0.06);
+}
+
+@media (min-width: 768px) {
+  .dash-welcome-bar {
+    flex-direction: row;
+    align-items: flex-end;
+  }
+}
+
+.dash-shield-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--cust-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dash-welcome-title {
+  margin: 0.25rem 0 0.5rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--cust-on-surface);
+  letter-spacing: -0.015em;
+}
+
+@media (min-width: 768px) {
+  .dash-welcome-title {
+    font-size: 2rem;
+  }
+}
+
+.dash-welcome-sub {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--cust-on-surface-variant);
+  max-width: 44rem;
+}
+
+.dash-welcome-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+/* 2. Real-Time Active Hospital Visit Hero Card */
+.dash-hero-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 1rem;
+  background-color: var(--cust-surface-container-lowest);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 67, 73, 0.08);
+  overflow: hidden;
+}
+
+.dash-hero-microbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--cust-primary);
+  color: var(--cust-on-primary);
+}
+
+@media (min-width: 640px) {
+  .dash-hero-microbar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.dash-pulse-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dash-pulse-dot {
+  position: relative;
+  display: flex;
+  width: 0.625rem;
+  height: 0.625rem;
+}
+
+.dash-pulse-dot-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background-color: #8fd1d9;
+  opacity: 0.75;
+  animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.dash-pulse-dot-core {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  background-color: #abeef6;
+}
+
+.dash-hero-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .dash-hero-body {
+    flex-direction: row;
+  }
+}
+
+.dash-hero-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1.25rem;
+}
+
+.dash-hero-sidebar {
+  width: 100%;
+  background-color: var(--cust-surface-container-low);
+  padding: 1.25rem;
+  border-radius: 0.875rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .dash-hero-sidebar {
+    width: 24rem;
+    flex-shrink: 0;
+  }
+}
+
+/* Progress Segmented Bar */
+.dash-progress-track {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.375rem;
+  height: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.dash-progress-seg {
+  height: 100%;
+  border-radius: 9999px;
+  background-color: var(--cust-surface-container-high);
+}
+
+.dash-progress-seg.is-filled {
+  background-color: var(--cust-primary-container);
+}
+
+.dash-progress-seg.is-active {
+  background-color: var(--cust-primary-container);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* 3. 4-Card Metrics Grid */
+.dash-metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .dash-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .dash-metrics-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.dash-metric-card {
+  padding: 1.25rem;
+  border-radius: 0.875rem;
+  background-color: var(--cust-surface-container-lowest);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 67, 73, 0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.dash-metric-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--cust-secondary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.dash-metric-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  background-color: var(--cust-surface-container-low);
+  color: var(--cust-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dash-metric-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--cust-on-surface);
+  line-height: 1.2;
+}
+
+.dash-metric-sub {
+  font-size: 0.8125rem;
+  color: var(--cust-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 0.25rem;
+}
+
+/* 4. Two-Column Midsection Layout */
+.dash-split-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .dash-split-grid {
+    grid-template-columns: 7fr 5fr;
+  }
+}
+
+.dash-feed-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.dash-widgets-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Request Stack Item */
+.dash-request-item {
+  padding: 1.25rem;
+  border-radius: 0.875rem;
+  background-color: var(--cust-surface-container-lowest);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 67, 73, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dash-request-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.dash-item-icon-box {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.625rem;
+  background-color: var(--cust-secondary-fixed);
+  color: var(--cust-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Recipient Row in Widget */
+.dash-recipient-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.75rem;
+  background-color: var(--cust-surface-container-low);
+  transition: background-color 0.15s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.dash-recipient-row:hover {
+  background-color: var(--cust-surface-container);
+}
+
+/* Hospital Guide Card */
+.dash-hospital-guide-card {
+  padding: 0.875rem 1rem;
+  border-radius: 0.75rem;
+  background-color: var(--cust-surface-container-low);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}

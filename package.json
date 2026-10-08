@@ -1,0 +1,32 @@
+{
+  "name": "aayuyukthi",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AayuYukthi — healthcare support and care-coordination platform (modular monolith)",
+  "type": "module",
+  "packageManager": "npm@10.8.2",
+  "workspaces": [
+    "apps/*",
+    "server",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:server": "npm run dev --workspace=server",
+    "dev:web": "npm run dev --workspace=apps/web",
+    "dev:ops": "npm run dev --workspace=apps/operations",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "npm run test --workspaces --if-present",
+    "migrate": "npm run migrate --workspace=server",
+    "db:health": "npm run db:health --workspace=server"
+  },
+  "devDependencies": {
+    "eslint": "^9.12.0",
+    "prettier": "^3.3.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
