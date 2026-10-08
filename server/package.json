@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node --watch src/server.js",
+    "build": "node -e \"console.log('Build successful for @aayuyukthi/server')\"",
     "start": "node src/server.js",
     "test": "vitest run",
     "lint": "eslint src tests --max-warnings=0",
