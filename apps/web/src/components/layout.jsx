@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { LanguageSelector } from '../i18n.jsx';
 import { track } from '../analytics.js';
@@ -18,10 +18,17 @@ export function usePageView() {
 }
 
 export function Navbar({ t, locale, setLocale, user }) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
   return (
     <header className="nav">
       <div className="nav-inner">
-        <Link to="/" className="brand">
+        <Link to="/" className="brand" onClick={() => setMobileMenuOpen(false)}>
           <span className="brand-mark">Aa</span>
           <span>{t.brand}</span>
         </Link>
@@ -40,6 +47,88 @@ export function Navbar({ t, locale, setLocale, user }) {
             <Link className="btn btn-secondary" to="/login" onClick={() => track('CTA_CLICKED', { cta: 'login' })}>{t.login}</Link>
           )}
           <Link className="btn btn-primary" to="/request-care" onClick={() => track('CTA_CLICKED', { cta: 'request_care' })}>{t.requestCare}</Link>
+        </div>
+
+        {/* Mobile quick action bar and hamburger button */}
+        <div className="nav-mobile-bar">
+          <Link
+            className="btn btn-primary btn-sm nav-mobile-quick-cta"
+            to="/request-care"
+            onClick={() => {
+              track('CTA_CLICKED', { cta: 'request_care' });
+              setMobileMenuOpen(false);
+            }}
+          >
+            {t.requestCare}
+          </Link>
+          <button
+            type="button"
+            className="nav-mobile-toggle"
+            onClick={() => setMobileMenuOpen((o) => !o)}
+            aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            aria-expanded={mobileMenuOpen}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
+              {mobileMenuOpen ? 'close' : 'menu'}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Drawer Backdrop */}
+      {mobileMenuOpen && (
+        <div
+          className="nav-mobile-backdrop"
+          onClick={() => setMobileMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Mobile Drawer Menu */}
+      <div className={`nav-mobile-drawer ${mobileMenuOpen ? 'is-open' : ''}`}>
+        <nav className="nav-mobile-links" aria-label="Mobile Primary">
+          <NavLink to="/how-it-works" onClick={() => setMobileMenuOpen(false)}>{t.nav.how}</NavLink>
+          <NavLink to="/services" onClick={() => setMobileMenuOpen(false)}>{t.nav.services}</NavLink>
+          <NavLink to="/hospitals" onClick={() => setMobileMenuOpen(false)}>{t.nav.hospitals}</NavLink>
+          <NavLink to="/about" onClick={() => setMobileMenuOpen(false)}>{t.nav.about}</NavLink>
+          <NavLink to="/contact" onClick={() => setMobileMenuOpen(false)}>{t.nav.contact}</NavLink>
+        </nav>
+
+        <div className="nav-mobile-actions">
+          <div className="nav-mobile-lang-row">
+            <span className="nav-mobile-lang-label">Language:</span>
+            <LanguageSelector locale={locale} onChange={setLocale} />
+          </div>
+          {user ? (
+            <Link
+              className="btn btn-secondary nav-mobile-btn"
+              to="/app"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              {t.myAccount}
+            </Link>
+          ) : (
+            <Link
+              className="btn btn-secondary nav-mobile-btn"
+              to="/login"
+              onClick={() => {
+                track('CTA_CLICKED', { cta: 'login' });
+                setMobileMenuOpen(false);
+              }}
+            >
+              {t.login}
+            </Link>
+          )}
+          <Link
+            className="btn btn-primary nav-mobile-btn"
+            to="/request-care"
+            onClick={() => {
+              track('CTA_CLICKED', { cta: 'request_care' });
+              setMobileMenuOpen(false);
+            }}
+          >
+            {t.requestCare}
+          </Link>
         </div>
       </div>
     </header>

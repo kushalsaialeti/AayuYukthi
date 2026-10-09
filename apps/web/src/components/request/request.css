@@ -470,3 +470,48 @@
   color: var(--rq-text);
   font-family: monospace;
 }
+
+/* Mobile Wizard Responsive Refinements */
+@media (max-width: 640px) {
+  .rq-page-shell {
+    padding: 16px 12px 64px;
+  }
+
+  .rq-card {
+    padding: 20px 16px;
+    border-radius: 12px;
+  }
+
+  .rq-review-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .rq-review-edit-btn {
+    align-self: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .rq-top-bar {
+    gap: 8px;
+  }
+
+  .rq-actions {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+
+  .rq-btn-secondary,
+  .rq-btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .rq-choice-item,
+  .rq-choice-card {
+    padding: 12px 14px;
+  }
+}
+

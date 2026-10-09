@@ -19,7 +19,7 @@ const SECTION_TITLES = {
   '/audit-logs': 'Security Audit Trail',
 };
 
-export function OpsHeader() {
+export function OpsHeader({ onToggleSidebar }) {
   const location = useLocation();
   const currentTitle = SECTION_TITLES[location.pathname] ||
     (location.pathname.startsWith('/services/') ? 'Service Configuration' :
@@ -32,44 +32,38 @@ export function OpsHeader() {
   return (
     <header className="ops-top-header">
       <div className="ops-header-title-area">
-        <h1 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: 'var(--ops-on-surface)' }}>
+        <button
+          type="button"
+          className="ops-mobile-toggle-btn"
+          onClick={onToggleSidebar}
+          aria-label="Open operations menu"
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>
+            menu
+          </span>
+        </button>
+        <h1 className="ops-header-title">
           {currentTitle}
         </h1>
       </div>
 
       <div className="ops-header-actions-area">
         {/* Live hub indicator */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          padding: '0.35rem 0.75rem',
-          borderRadius: 'var(--ops-radius-pill)',
-          backgroundColor: 'var(--ops-surface-container-low)',
-          fontSize: '0.75rem',
-          fontWeight: 600,
-          color: 'var(--ops-on-surface-variant)'
-        }}>
-          <span style={{
-            width: '7px',
-            height: '7px',
-            borderRadius: '9999px',
-            backgroundColor: 'var(--ops-success)',
-            boxShadow: '0 0 6px rgba(21, 128, 61, 0.4)'
-          }} />
-          <span>Bhimavaram Live Operations</span>
+        <div className="ops-header-live-badge">
+          <span className="ops-live-dot" />
+          <span className="ops-live-text">Bhimavaram Live Desk</span>
         </div>
 
         {/* Quick action: Website CMS or New */}
         <Link
           to="/cms/blocks"
-          className="ops-btn ops-btn-secondary ops-btn-sm"
+          className="ops-btn ops-btn-secondary ops-btn-sm ops-header-quick-action"
           title="Quick edit website copy and announcements"
         >
           <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--ops-primary)' }}>
             edit_note
           </span>
-          <span>Edit Website Copy</span>
+          <span className="ops-quick-action-text">Edit Website Copy</span>
         </Link>
       </div>
     </header>

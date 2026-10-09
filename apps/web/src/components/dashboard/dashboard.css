@@ -362,3 +362,45 @@
   align-items: flex-start;
   gap: 0.75rem;
 }
+
+/* Mobile Dashboard Refinements */
+@media (max-width: 640px) {
+  .dash-wrapper {
+    padding: 1rem 0.875rem 3.5rem;
+    gap: 1.25rem;
+  }
+
+  .dash-welcome-bar {
+    padding: 1.25rem 1rem;
+    border-radius: 0.875rem;
+  }
+
+  .dash-welcome-title {
+    font-size: 1.45rem;
+  }
+
+  .dash-welcome-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .dash-welcome-actions .cust-btn {
+    flex: 1;
+    min-width: 130px;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .dash-welcome-actions {
+    flex-direction: column;
+  }
+
+  .dash-welcome-actions .cust-btn {
+    width: 100%;
+  }
+
+  .dash-hospital-guide-card {
+    flex-direction: column;
+  }
+}

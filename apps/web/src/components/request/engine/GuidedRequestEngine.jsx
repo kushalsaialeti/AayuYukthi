@@ -14,6 +14,7 @@ import { ContactQuestion } from '../primitives/ContactQuestion.jsx';
 import { ReviewQuestion } from '../primitives/ReviewQuestion.jsx';
 import { AuthQuestion } from '../primitives/AuthQuestion.jsx';
 import { SuccessStep } from '../primitives/SuccessStep.jsx';
+import { ScrollProgress } from '../../ui/ScrollProgress.jsx';
 import '../request.css';
 
 const STEP_TITLES = {
@@ -201,6 +202,9 @@ export function GuidedRequestEngine({
 
   return (
     <div className="rq-page-shell">
+      {/* MagicUI ScrollProgress — strictly active during care-request form filling (Steps 1 to 10) */}
+      {step >= 1 && step <= 10 && <ScrollProgress />}
+
       <div className="rq-container" ref={containerRef}>
         {/* Top Header & Progress Bar */}
         {step <= 10 && (

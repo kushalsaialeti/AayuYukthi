@@ -413,6 +413,14 @@
   gap: 1rem;
 }
 
+@media (max-width: 480px) {
+  .contact-rapid-assistance {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+}
+
 /* Interactive Intake Form */
 .contact-form-card {
   background-color: var(--pub-card, #ffffff);

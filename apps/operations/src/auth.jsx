@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Navigate, Outlet, useNavigate } from 'react-router-dom';
+import { Navigate, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { api, tokenStore } from './api.js';
 import { OpsSidebar } from './components/OpsSidebar.jsx';
 import { OpsHeader } from './components/OpsHeader.jsx';
@@ -60,11 +60,18 @@ export function ProtectedRoute() {
 }
 
 export function OpsLayout() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
+
   return (
     <div className="ops-app-shell">
-      <OpsSidebar />
+      <OpsSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="ops-main-wrapper">
-        <OpsHeader />
+        <OpsHeader onToggleSidebar={() => setSidebarOpen((v) => !v)} />
         <main className="ops-content-container">
           <Outlet />
         </main>

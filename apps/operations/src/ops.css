@@ -79,7 +79,11 @@ body {
   z-index: 40;
   overflow-y: auto;
   box-shadow: 1px 0 6px rgba(0, 0, 0, 0.02);
-  transition: transform 0.2s ease;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ops-sidebar-backdrop {
+  display: none;
 }
 
 .ops-sidebar-header {
@@ -88,6 +92,25 @@ body {
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid var(--ops-outline-subtle);
+}
+
+.ops-sidebar-close-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--ops-radius-md);
+  border: 1px solid var(--ops-outline-subtle);
+  background: var(--ops-surface-container-low);
+  color: var(--ops-on-surface);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ops-sidebar-close-btn:hover {
+  background: var(--ops-surface-container);
+  color: var(--ops-error);
 }
 
 .ops-sidebar-brand {
@@ -204,18 +227,79 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0 2rem;
+  transition: padding 0.2s ease;
+}
+
+.ops-mobile-toggle-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.375rem;
+  height: 2.375rem;
+  border-radius: var(--ops-radius-md);
+  border: 1px solid var(--ops-outline-variant);
+  background-color: var(--ops-surface-container-lowest);
+  color: var(--ops-on-surface);
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow: var(--ops-shadow-sm);
+  transition: all 0.15s ease;
+}
+
+.ops-mobile-toggle-btn:hover {
+  background-color: var(--ops-surface-container);
+  border-color: var(--ops-primary);
 }
 
 .ops-header-title-area {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  min-width: 0;
+}
+
+.ops-header-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--ops-on-surface);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ops-header-actions-area {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.875rem;
+  flex-shrink: 0;
+}
+
+.ops-header-live-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--ops-radius-pill);
+  background-color: var(--ops-surface-container-low);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ops-on-surface-variant);
+  white-space: nowrap;
+}
+
+.ops-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background-color: var(--ops-success);
+  box-shadow: 0 0 6px rgba(21, 128, 61, 0.4);
+  flex-shrink: 0;
+}
+
+.ops-header-quick-action {
+  white-space: nowrap;
 }
 
 /* Content Container */
@@ -420,12 +504,15 @@ body {
   background-color: var(--ops-surface-container-lowest);
   border: 1px solid var(--ops-outline-subtle);
   border-radius: var(--ops-radius-xl);
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
   box-shadow: var(--ops-shadow-sm);
 }
 
 .ops-table {
   width: 100%;
+  min-width: 640px;
   border-collapse: collapse;
   text-align: left;
   font-size: 0.875rem;
@@ -563,3 +650,171 @@ body {
     opacity: 1;
   }
 }
+
+/* ==========================================================================
+   Responsive & Adaptive Media Queries (Mobile, Tablet, Desktop)
+   ========================================================================== */
+
+/* Tablet & Mobile Breakpoint (<= 1024px) */
+@media (max-width: 1024px) {
+  .ops-sidebar {
+    width: 18rem;
+    max-width: 85vw;
+    transform: translateX(-100%);
+    box-shadow: none;
+    z-index: 50;
+  }
+
+  .ops-sidebar.is-open {
+    transform: translateX(0);
+    box-shadow: 0 0 32px rgba(0, 0, 0, 0.25);
+  }
+
+  .ops-sidebar-backdrop.is-open {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    z-index: 49;
+  }
+
+  .ops-main-wrapper {
+    margin-left: 0 !important;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .ops-mobile-toggle-btn {
+    display: inline-flex;
+  }
+
+  .ops-sidebar-close-btn {
+    display: inline-flex;
+  }
+
+  .ops-top-header {
+    padding: 0 1.25rem;
+  }
+
+  .ops-content-container {
+    padding: 1.5rem 1.25rem;
+    gap: 1.25rem;
+  }
+}
+
+/* Phablet & Small Tablet Breakpoint (<= 768px) */
+@media (max-width: 768px) {
+  .ops-form-grid-2,
+  .ops-form-grid-3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .ops-top-header {
+    height: auto;
+    min-height: 4rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .ops-content-container {
+    padding: 1.25rem 1rem;
+  }
+
+  .ops-card {
+    padding: 1.25rem;
+  }
+
+  .ops-card-header {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+}
+
+/* Mobile Handheld Breakpoint (<= 640px) */
+@media (max-width: 640px) {
+  .ops-top-header {
+    padding: 0.625rem 0.875rem;
+    gap: 0.5rem;
+  }
+
+  .ops-header-title {
+    font-size: 1.0625rem;
+    max-width: 180px;
+  }
+
+  .ops-quick-action-text {
+    display: none;
+  }
+
+  .ops-header-live-badge {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.6875rem;
+  }
+
+  .ops-content-container {
+    padding: 1rem 0.75rem;
+    gap: 1rem;
+  }
+
+  .ops-card {
+    padding: 1rem;
+    border-radius: var(--ops-radius-lg);
+  }
+
+  .ops-table {
+    min-width: 580px;
+  }
+
+  .ops-table th,
+  .ops-table td {
+    padding: 0.625rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  /* Automatically reflow fixed-column grids on mobile */
+  div[style*="minmax(360px"],
+  div[style*="minmax(340px"],
+  div[style*="minmax(320px"],
+  div[style*="minmax(300px"],
+  div[style*="minmax(280px"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .ops-toast-container {
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+    max-width: none;
+  }
+}
+
+/* Compact Mobile Breakpoint (<= 480px) */
+@media (max-width: 480px) {
+  .ops-metrics-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem;
+  }
+
+  .ops-header-actions-area {
+    gap: 0.5rem;
+  }
+
+  .ops-live-text {
+    display: none;
+  }
+
+  .ops-header-live-badge {
+    padding: 0.35rem;
+    border-radius: 9999px;
+  }
+
+  .ops-btn {
+    min-height: 40px;
+  }
+
+  .ops-btn-sm {
+    min-height: 32px;
+  }
+}
+
