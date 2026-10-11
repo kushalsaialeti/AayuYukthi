@@ -27,21 +27,19 @@ const INITIAL_DRAFT = {
   serviceIds: [],
   // Step 3: Hospital
   hospitalId: null,
-  // Step 4: Visit / purpose
+  // Step 4: Visit / purpose & special directives
   appointmentType: '', // e.g. 'Consultation', 'Diagnostic Scan', etc.
+  additionalRequirements: '',
   // Step 5: Schedule
   appointmentDate: '',
   timeSlot: 'Morning (08:00 AM – 12:00 PM)',
   scheduleAt: null,
-  // Step 6: Pickup & Drop
+  // Step 6: Pickup & Drop Logistics + Updates Phone + Consent
   pickupRequired: false,
   pickupAddress: '',
   dropoffAddress: '',
-  // Step 7: Update recipients
   updatePhone: '',
-  // Step 8: Additional requirements
-  additionalRequirements: '',
-  mobilitySupport: [], // ['wheelchair', 'stretcher', 'vision']
+  consentAccepted: false,
 };
 
 export function useRequestDraft(user) {
@@ -53,7 +51,8 @@ export function useRequestDraft(user) {
     try {
       const saved = sessionStorage.getItem(`${STORAGE_KEY}_step`);
       const n = Number(saved);
-      return n >= 1 && n <= 12 ? n : 1;
+      // Strictly clamp between 1 and 7, never restoring to step 8+ or 12
+      return n >= 1 && n <= 7 ? n : 1;
     } catch {
       return 1;
     }
@@ -87,7 +86,7 @@ export function useRequestDraft(user) {
       try {
         await api.authedDraftPut({
           idempotency_key: idempotencyKey,
-          current_step: currentStep,
+          current_step: Math.min(currentStep, 7),
           payload: {
             recipient_id: currentDraft.recipientId,
             service_id: currentDraft.serviceId,
@@ -101,6 +100,7 @@ export function useRequestDraft(user) {
             dropoff_address: currentDraft.dropoffAddress || null,
             update_phone: currentDraft.updatePhone || null,
             additional_requirements: currentDraft.additionalRequirements || null,
+            consent_accepted: currentDraft.consentAccepted || false,
           },
         });
         track('REQUEST_DRAFT_SAVED', { step: currentStep });
@@ -135,6 +135,7 @@ export function useRequestDraft(user) {
             dropoffAddress: p.dropoff_address || prev.dropoffAddress,
             updatePhone: p.update_phone || prev.updatePhone,
             additionalRequirements: p.additional_requirements || prev.additionalRequirements,
+            consentAccepted: p.consent_accepted ?? prev.consentAccepted,
           }));
           track('REQUEST_DRAFT_RESUMED', { step: serverDraft.current_step });
         }
@@ -218,13 +219,19 @@ export function useRequestDraft(user) {
       if (data.pickupRequired && (!data.pickupAddress || data.pickupAddress.trim().length < 5)) {
         errs.pickupAddress = 'Please enter a complete pickup address (at least 5 characters)';
       }
-    } else if (stepNumber === 7) {
       if (data.updatePhone && !/^[+0-9\s-]{8,20}$/.test(data.updatePhone.trim())) {
         errs.updatePhone = 'Please enter a valid phone number for journey updates';
       }
+      if (!data.consentAccepted) {
+        errs.consent = 'You must accept the Privacy Policy and Terms & Conditions to proceed';
+      }
+    } else if (stepNumber === 7) {
+      if (!user) {
+        errs.auth = 'Please complete identity verification to confirm your care request';
+      }
     }
     return errs;
-  }, [draft]);
+  }, [draft, user]);
 
   // Step transitions
   const nextStep = useCallback(() => {
@@ -234,7 +241,7 @@ export function useRequestDraft(user) {
       return false;
     }
     setErrors({});
-    const newStep = Math.min(step + 1, 12);
+    const newStep = Math.min(step + 1, 7);
     setStep(newStep);
     track('REQUEST_STEP_COMPLETED', { step });
     track('REQUEST_STEP_VIEWED', { step: newStep });
@@ -252,7 +259,7 @@ export function useRequestDraft(user) {
   }, [step, draft, syncServerDraft]);
 
   const goToStep = useCallback((targetStep) => {
-    if (targetStep >= 1 && targetStep <= 12) {
+    if (targetStep >= 1 && targetStep <= 7) {
       setStep(targetStep);
       setErrors({});
       track('REQUEST_STEP_VIEWED', { step: targetStep, jump: true });
@@ -264,6 +271,9 @@ export function useRequestDraft(user) {
       sessionStorage.removeItem(STORAGE_KEY);
       sessionStorage.removeItem(`${STORAGE_KEY}_step`);
       sessionStorage.removeItem(KEY_STORAGE);
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(`${STORAGE_KEY}_step`);
+      localStorage.removeItem(KEY_STORAGE);
     } catch {}
     setDraft(INITIAL_DRAFT);
     setStep(1);

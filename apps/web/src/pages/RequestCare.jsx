@@ -23,6 +23,7 @@ export function RequestCare({ locale }) {
   const [services, setServices] = useState(null);
   const [hospitals, setHospitals] = useState(null);
   const [recipients, setRecipients] = useState([]);
+  const [userRequests, setUserRequests] = useState([]);
   const [cmsBlocks, setCmsBlocks] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -42,13 +43,15 @@ export function RequestCare({ locale }) {
 
       if (user?.id) {
         promises.push(api.recipients({ limit: 50 }).catch(() => ({ data: [] })));
+        promises.push(api.authedList({ limit: 50 }).catch(() => ({ data: [] })));
       }
 
-      const [svcRes, hospRes, blocksRes, recRes] = await Promise.all(promises);
+      const [svcRes, hospRes, blocksRes, recRes, reqsRes] = await Promise.all(promises);
       setServices(svcRes?.data || []);
       setHospitals(hospRes?.data || []);
       setCmsBlocks(blocksRes || {});
       setRecipients(recRes?.data || []);
+      setUserRequests(reqsRes?.data || []);
 
       if (!startedTrackedRef.current) {
         startedTrackedRef.current = true;
@@ -85,11 +88,18 @@ export function RequestCare({ locale }) {
   const initialServiceId = searchParams.get('service_id');
   const initialHospitalId = searchParams.get('hospital_id');
 
+  const activeStatuses = ['REQUEST_RECEIVED', 'UNDER_REVIEW', 'COORDINATION_IN_PROGRESS', 'CONFIRMED', 'SCHEDULED', 'SERVICE_IN_PROGRESS', 'ACTION_REQUIRED'];
+  const activeRecipientIds = (userRequests || [])
+    .filter((r) => activeStatuses.includes(r.status))
+    .map((r) => r.recipient_id || r.recipient?.id)
+    .filter(Boolean);
+
   return (
     <GuidedRequestEngine
       services={services || []}
       hospitals={hospitals || []}
       recipients={recipients || []}
+      activeRecipientIds={activeRecipientIds}
       cmsBlocks={cmsBlocks || {}}
       onRefreshRecipients={refreshRecipients}
       initialServiceId={initialServiceId}

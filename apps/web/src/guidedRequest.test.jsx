@@ -222,19 +222,13 @@ describe('GuidedRequestEngine End-to-End Flow', () => {
     await user.type(dateInput, '2026-12-10');
     await user.click(screen.getByRole('button', { name: /continue/i }));
 
-    // Step 6: Pickup & Drop
-    expect(screen.getByText(/Do you require home transit or doorstep pickup/i)).toBeInTheDocument();
+    // Step 6: Transit Logistics & Mandatory Consent
+    expect(screen.getByText(/Transit Logistics & Care Consent/i)).toBeInTheDocument();
+    const consentBox = screen.getByLabelText(/Mandatory Consent/i);
+    await user.click(consentBox);
     await user.click(screen.getByRole('button', { name: /continue/i }));
 
-    // Step 7: Updates
-    expect(screen.getByText(/Who should receive live journey updates/i)).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: /continue/i }));
-
-    // Step 8: Additional Requirements
-    expect(screen.getByText(/Any mobility assistance or special directives/i)).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: /continue/i }));
-
-    // Step 9: Review
+    // Step 7: Review & Identity Verification
     expect(screen.getByText(/Review your journey details/i)).toBeInTheDocument();
     expect(screen.getByText('Kamala Devi')).toBeInTheDocument();
     expect(screen.getByText('Hospital Visit Escort')).toBeInTheDocument();

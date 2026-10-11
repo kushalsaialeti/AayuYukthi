@@ -12,6 +12,16 @@ const REQUEST_FIELDS = ['id', 'service_id', 'hospital_id', 'recipient_id', 'appo
 const toRequestDto = (row) => pick(row, REQUEST_FIELDS);
 const toDraftDto = (row) => pick(row, ['id', 'idempotency_key', 'current_step', 'payload', 'updated_at']);
 
+const ACTIVE_STATUS_LIST = [
+  'REQUEST_RECEIVED',
+  'UNDER_REVIEW',
+  'COORDINATION_IN_PROGRESS',
+  'CONFIRMED',
+  'SCHEDULED',
+  'SERVICE_IN_PROGRESS',
+  'ACTION_REQUIRED',
+];
+
 // ---- drafts ----
 
 export async function saveDraft(db, ownerId, { idempotency_key, current_step, payload }) {
@@ -33,6 +43,117 @@ export async function getDraft(db, ownerId, idempotencyKey) {
     [ownerId, idempotencyKey],
   );
   return rows[0] ? toDraftDto(rows[0]) : null;
+}
+
+export async function listCustomerDrafts(db, ownerId) {
+  const { rows } = await db.query(
+    `SELECT d.id, d.idempotency_key, d.current_step, d.payload, d.created_at, d.updated_at,
+            rec.id AS valid_recipient_id,
+            rec.full_name AS recipient_name, rec.relationship AS recipient_relationship,
+            s.id AS valid_service_id, s.title_en AS service_title,
+            h.id AS valid_hospital_id, h.name_en AS hospital_name,
+            (SELECT COUNT(*)::int FROM requests r
+             WHERE (d.payload->>'recipient_id') IS NOT NULL
+               AND (d.payload->>'recipient_id') ~ '^[0-9a-fA-F-]{36}$'
+               AND r.recipient_id = (d.payload->>'recipient_id')::uuid
+               AND r.status = ANY($2::text[])) AS recipient_active_count
+     FROM request_drafts d
+     LEFT JOIN care_recipients rec ON (d.payload->>'recipient_id') IS NOT NULL
+          AND (d.payload->>'recipient_id') ~ '^[0-9a-fA-F-]{36}$'
+          AND rec.id = (d.payload->>'recipient_id')::uuid
+          AND rec.owner_user_id = $1
+     LEFT JOIN services s ON (d.payload->>'service_id') IS NOT NULL
+          AND (d.payload->>'service_id') ~ '^[0-9a-fA-F-]{36}$'
+          AND s.id = (d.payload->>'service_id')::uuid
+     LEFT JOIN hospitals h ON (d.payload->>'hospital_id') IS NOT NULL
+          AND (d.payload->>'hospital_id') ~ '^[0-9a-fA-F-]{36}$'
+          AND h.id = (d.payload->>'hospital_id')::uuid
+     WHERE d.owner_user_id = $1
+     ORDER BY d.updated_at DESC`,
+    [ownerId, ACTIVE_STATUS_LIST],
+  );
+  return rows.map((r) => {
+    const hasRecipient = Boolean(r.valid_recipient_id);
+    const hasService = Boolean(r.valid_service_id);
+    const hasHospital = Boolean(r.valid_hospital_id);
+    const isComplete = hasRecipient && hasService && hasHospital;
+
+    const missing = [];
+    if (!hasRecipient) missing.push(r.payload?.recipient_id ? 'Care recipient profile no longer exists' : 'Care recipient not selected');
+    if (!hasService) missing.push('Care service not selected');
+    if (!hasHospital) missing.push('Hospital campus not selected');
+
+    return {
+      id: r.id,
+      idempotency_key: r.idempotency_key,
+      current_step: r.current_step,
+      payload: r.payload,
+      created_at: r.created_at,
+      updated_at: r.updated_at,
+      recipient_name: r.recipient_name || (r.payload?.recipient_id ? 'Unknown recipient' : 'No patient selected'),
+      recipient_relationship: r.recipient_relationship,
+      service_title: r.service_title || 'No service selected',
+      hospital_name: r.hospital_name || 'No hospital selected',
+      has_active_request: (r.recipient_active_count || 0) > 0,
+      is_complete: isComplete,
+      missing_fields: missing,
+      is_queued: Boolean(r.payload?.is_queued_draft),
+    };
+  });
+}
+
+export async function deleteDraft(db, ownerId, draftId) {
+  const { rowCount } = await db.query(
+    'DELETE FROM request_drafts WHERE id = $1 AND owner_user_id = $2',
+    [draftId, ownerId],
+  );
+  if (!rowCount) throw httpError(404, 'DRAFT_NOT_FOUND', 'Draft not found');
+  return { success: true };
+}
+
+export async function activateDraft(db, actor, draftId) {
+  const ownerId = actor.actorId;
+  const { rows } = await db.query(
+    'SELECT id, idempotency_key, payload FROM request_drafts WHERE id = $1 AND owner_user_id = $2 LIMIT 1',
+    [draftId, ownerId],
+  );
+  if (!rows[0]) throw httpError(404, 'DRAFT_NOT_FOUND', 'Draft not found');
+
+  const payload = rows[0].payload;
+  if (!payload) {
+    throw httpError(400, 'INCOMPLETE_DRAFT', 'This draft is empty. Please complete the booking form.');
+  }
+  if (!payload.recipient_id) {
+    throw httpError(400, 'INCOMPLETE_DRAFT', 'This draft is missing a care recipient. Please resume the booking to select a patient.');
+  }
+  if (!payload.service_id) {
+    throw httpError(400, 'INCOMPLETE_DRAFT', 'This draft is missing the requested care service. Please resume the booking to select a service.');
+  }
+  if (!payload.hospital_id) {
+    throw httpError(400, 'INCOMPLETE_DRAFT', 'This draft is missing the destination hospital. Please resume the booking to select a hospital.');
+  }
+
+  // Check if recipient still has an active request
+  const active = await db.query(
+    `SELECT id, status FROM requests WHERE recipient_id = $1 AND status = ANY($2::text[]) LIMIT 1`,
+    [payload.recipient_id, ACTIVE_STATUS_LIST],
+  );
+  if (active.rows[0]) {
+    throw httpError(409, 'ACTIVE_REQUEST_EXISTS', 'This care recipient still has an ongoing active request. You can push this draft to live once their current request completes.');
+  }
+
+  // Submit as live request with a fresh live activation key
+  const submitKey = `live-${draftId}-${Date.now()}`;
+  const submitResult = await submitRequest(db, actor, {
+    ...payload,
+    idempotency_key: submitKey,
+  });
+
+  if (!submitResult.saved_as_draft) {
+    await db.query('DELETE FROM request_drafts WHERE id = $1', [draftId]);
+  }
+
+  return submitResult;
 }
 
 // ---- submit ----
@@ -64,6 +185,32 @@ export async function submitRequest(db, actor, input) {
   if (dup.rows[0]) {
     const existing = await getCustomerRequest(db, ownerId, dup.rows[0].id);
     return { request: existing, duplicate: true };
+  }
+
+  // Rule: Max 1 active request per recipient. Second request sent to drafts.
+  const activeExisting = await db.query(
+    `SELECT id, status, appointment_date FROM requests
+     WHERE recipient_id = $1 AND status = ANY($2::text[])
+     LIMIT 1`,
+    [input.recipient_id, ACTIVE_STATUS_LIST],
+  );
+  if (activeExisting.rows[0]) {
+    const draftKey = input.idempotency_key || `draft-${Date.now()}`;
+    const savedDraft = await saveDraft(db, ownerId, {
+      idempotency_key: draftKey,
+      current_step: 7,
+      payload: {
+        ...input,
+        is_queued_draft: true,
+        active_request_id: activeExisting.rows[0].id,
+      },
+    });
+    return {
+      saved_as_draft: true,
+      active_request_id: activeExisting.rows[0].id,
+      draft: savedDraft,
+      message: 'This care recipient already has an active request in progress. This booking has been saved to your drafts and can be pushed to a live request once the active request completes.',
+    };
   }
 
   const insert = async (client) => {
@@ -286,6 +433,20 @@ export async function getCustomerRequestDetails(db, ownerId, id) {
     current_step: currentStepIdx,
     milestones,
     telemetry: req.telemetry_data || null,
+  };
+}
+
+// Dedicated receipt API endpoint
+export async function getCustomerRequestReceipt(db, ownerId, id) {
+  const req = await getCustomerRequest(db, ownerId, id);
+  return {
+    ...req,
+    receipt_generated_at: new Date().toISOString(),
+    caretaker_note: 'The care companion / caretaker details will be shared 1 hour before the scheduled service request time.',
+    consent_recorded: {
+      privacy_policy_accepted: true,
+      terms_and_conditions_accepted: true,
+    },
   };
 }
 

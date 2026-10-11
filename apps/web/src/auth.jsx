@@ -42,6 +42,12 @@ export function CustomerAuthProvider({ children }) {
     try {
       sessionStorage.removeItem('ay-user');
       localStorage.removeItem('ay-user');
+      sessionStorage.removeItem('ay_guided_draft_v2');
+      sessionStorage.removeItem('ay_guided_draft_v2_step');
+      sessionStorage.removeItem('ay_guided_draft_idempotency_key');
+      localStorage.removeItem('ay_guided_draft_v2');
+      localStorage.removeItem('ay_guided_draft_v2_step');
+      localStorage.removeItem('ay_guided_draft_idempotency_key');
     } catch { /* private mode */ }
     setUser(null);
     if (refresh) await api.logout(refresh).catch(() => {});

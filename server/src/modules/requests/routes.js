@@ -5,7 +5,19 @@ import { requireAuth, requireCustomer } from '../../middleware/auth.js';
 import { parsePagination, paginatedResponse } from '../../utils/http.js';
 import { actorFrom } from '../audit/writer.js';
 import { draftUpsertSchema, requestSubmitSchema, requestListQuerySchema } from './schemas.js';
-import { saveDraft, getDraft, submitRequest, listCustomerRequests, getCustomerRequest, getCustomerRequestDetails, cancelCustomerRequest } from './service.js';
+import {
+  saveDraft,
+  getDraft,
+  listCustomerDrafts,
+  activateDraft,
+  deleteDraft,
+  submitRequest,
+  listCustomerRequests,
+  getCustomerRequest,
+  getCustomerRequestDetails,
+  getCustomerRequestReceipt,
+  cancelCustomerRequest,
+} from './service.js';
 
 export function createCustomerRequestsRouter(db) {
   const router = Router();
@@ -30,9 +42,37 @@ export function createCustomerRequestsRouter(db) {
     }
   });
 
+  router.get('/drafts', async (req, res, next) => {
+    try {
+      res.json({ data: await listCustomerDrafts(db, req.user.id) });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.post('/drafts/:id/activate', async (req, res, next) => {
+    try {
+      res.json({ data: await activateDraft(db, actorFrom(req), req.params.id) });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.delete('/drafts/:id', async (req, res, next) => {
+    try {
+      res.json({ data: await deleteDraft(db, req.user.id, req.params.id) });
+    } catch (err) {
+      next(err);
+    }
+  });
+
   router.post('/submit', validate(requestSubmitSchema), async (req, res, next) => {
     try {
-      const { request, duplicate } = await submitRequest(db, actorFrom(req), req.body);
+      const result = await submitRequest(db, actorFrom(req), req.body);
+      if (result.saved_as_draft) {
+        return res.status(200).json({ data: result });
+      }
+      const { request, duplicate } = result;
       res.status(duplicate ? 200 : 201).json({ data: { ...request, duplicate: duplicate || undefined } });
     } catch (err) {
       next(err);
@@ -44,6 +84,15 @@ export function createCustomerRequestsRouter(db) {
       const { page, limit } = parsePagination(req.query);
       const { items, total } = await listCustomerRequests(db, req.user.id, { page, limit, status: req.query.status });
       res.json(paginatedResponse(items, total, page, limit));
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Dedicated separate API for order confirmation & receipt
+  router.get('/:id/receipt', async (req, res, next) => {
+    try {
+      res.json({ data: await getCustomerRequestReceipt(db, req.user.id, req.params.id) });
     } catch (err) {
       next(err);
     }

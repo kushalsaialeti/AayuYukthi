@@ -10,10 +10,8 @@ import { HospitalQuestion } from '../primitives/HospitalQuestion.jsx';
 import { TextQuestion } from '../primitives/TextQuestion.jsx';
 import { DateQuestion } from '../primitives/DateQuestion.jsx';
 import { AddressQuestion } from '../primitives/AddressQuestion.jsx';
-import { ContactQuestion } from '../primitives/ContactQuestion.jsx';
 import { ReviewQuestion } from '../primitives/ReviewQuestion.jsx';
 import { AuthQuestion } from '../primitives/AuthQuestion.jsx';
-import { SuccessStep } from '../primitives/SuccessStep.jsx';
 import { ScrollProgress } from '../../ui/ScrollProgress.jsx';
 import '../request.css';
 
@@ -21,21 +19,17 @@ const STEP_TITLES = {
   1: 'Who needs support?',
   2: 'Which service?',
   3: 'Which hospital?',
-  4: 'What is the visit?',
-  5: 'When?',
-  6: 'Pickup / Drop',
-  7: 'Who receives updates?',
-  8: 'Additional requirements',
-  9: 'Review details',
-  10: 'Verify caregiver account',
-  11: 'Submitting request...',
-  12: 'Request confirmed',
+  4: 'Visit purpose & directives',
+  5: 'When? (Schedule)',
+  6: 'Logistics & Mandatory consent',
+  7: 'Review & Verification',
 };
 
 export function GuidedRequestEngine({
   services = [],
   hospitals = [],
   recipients = [],
+  activeRecipientIds = [],
   cmsBlocks = {},
   onRefreshRecipients,
   initialServiceId,
@@ -50,10 +44,8 @@ export function GuidedRequestEngine({
     draft,
     errors,
     submitting,
-    submissionResult,
     idempotencyKey,
     updateField,
-    updateFields,
     toggleServiceId,
     validateStep,
     nextStep,
@@ -61,7 +53,6 @@ export function GuidedRequestEngine({
     goToStep,
     setErrors,
     setSubmitting,
-    setSubmissionResult,
     clearDraft,
   } = useRequestDraft(user);
 
@@ -75,14 +66,14 @@ export function GuidedRequestEngine({
     };
   };
 
-  // Auth CMS settings (Email on by default, Phone off by default)
+  // Auth CMS settings
   const authCmsConfig = useMemo(() => {
     const emailBlock = cmsBlocks['auth.email_enabled'];
     const phoneBlock = cmsBlocks['auth.phone_enabled'];
     return {
       authEmailEnabled: emailBlock ? emailBlock.body_en !== 'false' : true,
       authPhoneEnabled: phoneBlock ? phoneBlock.body_en === 'true' : false,
-      ...getStepCms(10),
+      ...getStepCms(7),
     };
   }, [cmsBlocks]);
 
@@ -96,7 +87,7 @@ export function GuidedRequestEngine({
     }
   }, [initialServiceId, initialHospitalId, draft.serviceId, draft.hospitalId, updateField]);
 
-  // Focus management: move focus to heading on step transition
+  // Focus management
   useEffect(() => {
     if (containerRef.current) {
       const heading = containerRef.current.querySelector('h1, h2');
@@ -131,7 +122,7 @@ export function GuidedRequestEngine({
     return hospitals.find((h) => h.id === draft.hospitalId);
   }, [hospitals, draft.hospitalId]);
 
-  // Handle final submission (Step 11)
+  // Handle final submission (Step 7)
   const handleSubmit = async () => {
     setSubmitting(true);
     setErrors({});
@@ -186,10 +177,16 @@ export function GuidedRequestEngine({
       };
 
       const res = await api.authedSubmit(submitPayload);
-      setSubmissionResult(res);
       clearDraft();
-      goToStep(12);
-      track('REQUEST_COMPLETED', { request_id: res?.id || res?.request?.id });
+
+      if (res?.saved_as_draft) {
+        track('REQUEST_QUEUED_AS_DRAFT', { recipient_id: finalRecipientId });
+        navigate('/app/requests?tab=drafts&notice=queued');
+      } else {
+        const newReqId = res?.id || res?.request?.id;
+        track('REQUEST_COMPLETED', { request_id: newReqId });
+        navigate(`/request-care/confirmed/${newReqId}`);
+      }
     } catch (err) {
       track('REQUEST_SUBMISSION_FAILED', { error: err.message });
       setErrors({ submit: err.message || 'Submission failed. Please check your connection and retry.' });
@@ -198,53 +195,52 @@ export function GuidedRequestEngine({
     }
   };
 
-  const progressPercentage = Math.round((Math.min(step, 10) / 10) * 100);
+  const progressPercentage = Math.round((step / 7) * 100);
 
   return (
     <div className="rq-page-shell">
-      {/* MagicUI ScrollProgress — strictly active during care-request form filling (Steps 1 to 10) */}
-      {step >= 1 && step <= 10 && <ScrollProgress />}
+      {/* MagicUI ScrollProgress — active during care-request form filling (Steps 1 to 7) */}
+      {step >= 1 && step <= 7 && <ScrollProgress />}
 
       <div className="rq-container" ref={containerRef}>
         {/* Top Header & Progress Bar */}
-        {step <= 10 && (
-          <header className="rq-header">
-            <div className="rq-top-bar">
-              {step > 1 ? (
-                <button
-                  type="button"
-                  className="rq-back-btn"
-                  onClick={prevStep}
-                  aria-label="Previous step"
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_back</span>
-                  <span>Back</span>
-                </button>
-              ) : (
-                <div style={{ width: 60 }} />
-              )}
-              <div className="rq-step-counter">
-                Step {step} of 10 • {getStepCms(step).title || STEP_TITLES[step] || ''}
-              </div>
+        <header className="rq-header">
+          <div className="rq-top-bar">
+            {step > 1 ? (
+              <button
+                type="button"
+                className="rq-back-btn"
+                onClick={prevStep}
+                aria-label="Previous step"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_back</span>
+                <span>Back</span>
+              </button>
+            ) : (
+              <div style={{ width: 60 }} />
+            )}
+            <div className="rq-step-counter">
+              Step {step} of 7 • {STEP_TITLES[step] || ''}
             </div>
-            <div
-              className="rq-progress-track"
-              role="progressbar"
-              aria-valuenow={progressPercentage}
-              aria-valuemin="0"
-              aria-valuemax="100"
-              aria-label={`Step ${step} of 10`}
-            >
-              <div className="rq-progress-fill" style={{ width: `${progressPercentage}%` }} />
-            </div>
-          </header>
-        )}
+          </div>
+          <div
+            className="rq-progress-track"
+            role="progressbar"
+            aria-valuenow={progressPercentage}
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-label={`Step ${step} of 7`}
+          >
+            <div className="rq-progress-fill" style={{ width: `${progressPercentage}%` }} />
+          </div>
+        </header>
 
         {/* Main Step Body */}
         <main className="rq-card">
           {step === 1 && (
             <RecipientQuestion
               recipients={recipients}
+              activeRecipientIds={activeRecipientIds}
               selectedRecipientId={draft.recipientId}
               newRecipient={draft.newRecipient}
               onSelectRecipient={(id) => updateField('recipientId', id)}
@@ -288,9 +284,9 @@ export function GuidedRequestEngine({
           {step === 4 && (
             <TextQuestion
               stepNumber={4}
-              stepLabel={getStepCms(4).eyebrow || 'Visit Purpose'}
+              stepLabel={getStepCms(4).eyebrow || 'Step 4 of 7 • Purpose & Special Directives'}
               title={getStepCms(4).title || 'What is the purpose of this hospital visit?'}
-              description={getStepCms(4).desc || 'Help our companion prepare appropriate files, token queues, and wheelchair support.'}
+              description={getStepCms(4).desc || 'Help our care companion prepare appropriate records, queue tokens, and mobility support.'}
               value={draft.appointmentType}
               onChange={(val) => updateField('appointmentType', val)}
               placeholder="e.g. Cardiology OPD Consult, MRI Brain Scan, Post-Surgery Followup"
@@ -324,88 +320,79 @@ export function GuidedRequestEngine({
               onPickupAddressChange={(val) => updateField('pickupAddress', val)}
               dropoffAddress={draft.dropoffAddress}
               onDropoffAddressChange={(val) => updateField('dropoffAddress', val)}
+              updatePhone={draft.updatePhone}
+              onUpdatePhoneChange={(val) => updateField('updatePhone', val)}
+              currentUserPhone={user?.phone_e164}
+              consentAccepted={draft.consentAccepted}
+              onConsentAcceptedChange={(val) => updateField('consentAccepted', val)}
               cmsConfig={getStepCms(6)}
               error={errors.pickupAddress}
+              consentError={errors.consent}
+              phoneError={errors.updatePhone}
             />
           )}
 
           {step === 7 && (
-            <ContactQuestion
-              updatePhone={draft.updatePhone}
-              onUpdatePhoneChange={(val) => updateField('updatePhone', val)}
-              currentUserPhone={user?.phone_e164}
-              cmsConfig={getStepCms(7)}
-              error={errors.updatePhone}
-            />
-          )}
+            <div>
+              <ReviewQuestion
+                draft={draft}
+                recipientName={selectedRecipient?.full_name || draft.newRecipient?.fullName}
+                serviceTitle={selectedService?.title_en}
+                serviceTitles={serviceTitles}
+                hospitalName={selectedHospital?.name_en}
+                cmsConfig={getStepCms(7)}
+                onEditStep={(target) => goToStep(target)}
+              />
 
-          {step === 8 && (
-            <TextQuestion
-              stepNumber={8}
-              stepLabel={getStepCms(8).eyebrow || 'Special Requirements'}
-              title={getStepCms(8).title || 'Any mobility assistance or special directives?'}
-              description={getStepCms(8).desc || 'Tell us if the patient requires wheelchair ramp access, Telugu/Hindi speaking escort, or lift assistance.'}
-              value={draft.additionalRequirements}
-              onChange={(val) => updateField('additionalRequirements', val)}
-              placeholder="e.g. Patient requires wheelchair from arrival gate. Prefers companion fluent in Telugu."
-              suggestions={[
-                'Wheelchair Assistance Required',
-                'Telugu Speaking Escort',
-                'Hindi Speaking Escort',
-                'Slow Walker / Cane Support',
-                'Prescription Dossier Handover',
-              ]}
-              isTextarea
-              error={errors.additionalRequirements}
-            />
-          )}
-
-          {step === 9 && (
-            <ReviewQuestion
-              draft={draft}
-              recipientName={selectedRecipient?.full_name || draft.newRecipient?.fullName}
-              serviceTitle={selectedService?.title_en}
-              serviceTitles={serviceTitles}
-              hospitalName={selectedHospital?.name_en}
-              cmsConfig={getStepCms(9)}
-              onEditStep={(target) => goToStep(target)}
-            />
-          )}
-
-          {step === 10 && (
-            <AuthQuestion
-              role={draft.newRecipient?.relationship}
-              recipientName={draft.newRecipient?.fullName}
-              cmsConfig={authCmsConfig}
-              onAuthSuccess={() => {
-                // If user just verified, they can now submit!
-              }}
-              error={errors.auth}
-            />
-          )}
-
-          {step === 11 && (
-            <div style={{ textAlign: 'center', padding: '40px 16px' }}>
-              <div className="rq-option-icon" style={{ margin: '0 auto 20px', width: '56px', height: '56px' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 32 }}>hourglass_top</span>
+              {/* Identity Verification Section */}
+              <div style={{ marginTop: '24px' }}>
+                {user ? (
+                  <div
+                    style={{
+                      background: '#ecfdf5',
+                      border: '1px solid #10b981',
+                      borderRadius: '12px',
+                      padding: '16px 20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '16px',
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: '12px', fontWeight: 700, color: '#047857', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>verified</span>
+                        <span>Verified Caregiver Identity</span>
+                      </div>
+                      <div style={{ fontSize: '15px', fontWeight: 600, color: '#065f46', marginTop: '2px' }}>
+                        {user.full_name || 'Caregiver Account'} {user.email ? `(${user.email})` : user.phone_e164 ? `(${user.phone_e164})` : ''}
+                      </div>
+                      <div style={{ fontSize: '13px', color: '#047857', marginTop: '2px' }}>
+                        Caregiver authentication verified. Ready to submit and secure hospital accompaniment.
+                      </div>
+                    </div>
+                    <span className="material-symbols-outlined" style={{ fontSize: 36, color: '#10b981', flexShrink: 0 }}>
+                      verified_user
+                    </span>
+                  </div>
+                ) : (
+                  <div>
+                    <div style={{ margin: '16px 0 8px', fontSize: '14px', fontWeight: 600, color: 'var(--rq-text)' }}>
+                      Identity Verification Required
+                    </div>
+                    <AuthQuestion
+                      role={draft.newRecipient?.relationship}
+                      recipientName={draft.newRecipient?.fullName}
+                      cmsConfig={authCmsConfig}
+                      onAuthSuccess={() => {
+                        // User verified!
+                      }}
+                      error={errors.auth}
+                    />
+                  </div>
+                )}
               </div>
-              <h2 className="rq-title">{getStepCms(11).title || 'Securing Care Request...'}</h2>
-              <p className="rq-description">
-                {getStepCms(11).desc || 'Submitting your details securely to our operations hospital coordination desk.'}
-              </p>
             </div>
-          )}
-
-          {step === 12 && (
-            <SuccessStep
-              requestResult={submissionResult}
-              recipientName={selectedRecipient?.full_name || draft.newRecipient?.fullName}
-              serviceTitle={selectedService?.title_en}
-              serviceTitles={serviceTitles}
-              hospitalName={selectedHospital?.name_en}
-              cmsConfig={getStepCms(12)}
-              onReset={clearDraft}
-            />
           )}
 
           {errors.submit && (
@@ -416,69 +403,46 @@ export function GuidedRequestEngine({
           )}
 
           {/* Action Buttons */}
-          {step <= 10 && (
-            <footer className="rq-actions">
-              {step > 1 ? (
-                <button
-                  type="button"
-                  className="rq-btn-secondary"
-                  onClick={prevStep}
-                  disabled={submitting}
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_back</span>
-                  <span>Previous</span>
-                </button>
-              ) : (
-                <div />
-              )}
+          <footer className="rq-actions">
+            {step > 1 ? (
+              <button
+                type="button"
+                className="rq-btn-secondary"
+                onClick={prevStep}
+                disabled={submitting}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_back</span>
+                <span>Previous</span>
+              </button>
+            ) : (
+              <div />
+            )}
 
-              {step < 9 && (
-                <button
-                  type="button"
-                  className="rq-btn-primary"
-                  onClick={nextStep}
-                >
-                  <span>Continue</span>
-                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_forward</span>
-                </button>
-              )}
+            {step < 7 && (
+              <button
+                type="button"
+                className="rq-btn-primary"
+                onClick={nextStep}
+              >
+                <span>Continue</span>
+                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_forward</span>
+              </button>
+            )}
 
-              {step === 9 && (
-                <button
-                  type="button"
-                  className="rq-btn-primary"
-                  onClick={() => {
-                    track('REQUEST_REVIEWED');
-                    if (user) {
-                      // Already authenticated, proceed straight to submit
-                      handleSubmit();
-                    } else {
-                      // Move to authentication step
-                      nextStep();
-                    }
-                  }}
-                  disabled={submitting}
-                >
-                  <span>{user ? 'Confirm & Submit Request' : 'Proceed to Verification'}</span>
-                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-                    {user ? 'send' : 'lock'}
-                  </span>
-                </button>
-              )}
-
-              {step === 10 && (
-                <button
-                  type="button"
-                  className="rq-btn-primary"
-                  onClick={handleSubmit}
-                  disabled={!user || submitting}
-                >
-                  <span>{submitting ? 'Submitting...' : 'Submit Care Request'}</span>
-                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>send</span>
-                </button>
-              )}
-            </footer>
-          )}
+            {step === 7 && (
+              <button
+                type="button"
+                className="rq-btn-primary"
+                onClick={handleSubmit}
+                disabled={!user || submitting}
+              >
+                <span>{submitting ? 'Submitting...' : 'Confirm & Submit Care Request'}</span>
+                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                  {user ? 'send' : 'lock'}
+                </span>
+              </button>
+            )}
+          </footer>
         </main>
       </div>
     </div>

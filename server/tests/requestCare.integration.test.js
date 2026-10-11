@@ -178,6 +178,9 @@ describe('submit + idempotency + reads', () => {
     expect(cancelRes.status).toBe(409);
     expect(cancelRes.body.code).toBe('REQUEST_NOT_CANCELLABLE');
     expect(cancelRes.body.message).toContain('within 3 days');
+
+    // Clean up soonId so recipientA can book again
+    await db.query(`UPDATE requests SET status = 'CANCELLED' WHERE id = $1`, [soonId]);
   });
 
   it('allows cancellation for confirmed appointments > 6 hours and blocks < 6 hours', async () => {
@@ -187,6 +190,7 @@ describe('submit + idempotency + reads', () => {
       ...validPayload(),
       idempotency_key: 'test-confirmed-10h',
     });
+    expect(sub1.status).toBe(201);
     const id1 = sub1.body.data.id;
     await db.query(`UPDATE requests SET status = 'CONFIRMED', schedule_at = $1 WHERE id = $2`, [futureSlot, id1]);
 
@@ -200,6 +204,7 @@ describe('submit + idempotency + reads', () => {
       ...validPayload(),
       idempotency_key: 'test-confirmed-2h',
     });
+    expect(sub2.status).toBe(201);
     const id2 = sub2.body.data.id;
     await db.query(`UPDATE requests SET status = 'CONFIRMED', schedule_at = $1 WHERE id = $2`, [urgentSlot, id2]);
 
@@ -207,5 +212,55 @@ describe('submit + idempotency + reads', () => {
     expect(cancel2.status).toBe(409);
     expect(cancel2.body.code).toBe('REQUEST_NOT_CANCELLABLE');
     expect(cancel2.body.message).toContain('within 6 hours');
+
+    await db.query(`UPDATE requests SET status = 'CANCELLED' WHERE id = $1`, [id2]);
+  });
+
+  it('enforces single active request per recipient and queues second request into drafts', async () => {
+    // 1. Submit first active request
+    const first = await auth(request(app).post('/api/v1/requests/submit')).send({
+      ...validPayload(),
+      idempotency_key: 'test-active-rule-req-1',
+    });
+    expect(first.status).toBe(201);
+    const firstId = first.body.data.id;
+    expect(first.body.data.status).toBe('REQUEST_RECEIVED');
+
+    // 2. Attempt second request for the same recipient -> queued as draft
+    const second = await auth(request(app).post('/api/v1/requests/submit')).send({
+      ...validPayload(),
+      idempotency_key: 'test-active-rule-req-2',
+      appointment_type: 'Second Request OPD',
+    });
+    expect(second.status).toBe(200);
+    expect(second.body.data.saved_as_draft).toBe(true);
+    expect(second.body.data.active_request_id).toBe(firstId);
+
+    // 3. Draft appears in customer drafts list
+    const draftsList = await auth(request(app).get('/api/v1/requests/drafts'));
+    expect(draftsList.status).toBe(200);
+    const queuedDraft = draftsList.body.data.find((d) => d.idempotency_key === 'test-active-rule-req-2');
+    expect(queuedDraft).toBeTruthy();
+    expect(queuedDraft.has_active_request).toBe(true);
+
+    // 4. Attempting to activate while first request is active fails with 409
+    const actFail = await auth(request(app).post(`/api/v1/requests/drafts/${queuedDraft.id}/activate`));
+    expect(actFail.status).toBe(409);
+    expect(actFail.body.code).toBe('ACTIVE_REQUEST_EXISTS');
+
+    // 5. Complete first request
+    await db.query(`UPDATE requests SET status = 'COMPLETED', completed_at = now() WHERE id = $1`, [firstId]);
+
+    // 6. Activating draft now succeeds and pushes to live request
+    const actSuccess = await auth(request(app).post(`/api/v1/requests/drafts/${queuedDraft.id}/activate`));
+    expect(actSuccess.status).toBe(200);
+    expect(actSuccess.body.data.request.status).toBe('REQUEST_RECEIVED');
+    const liveReqId = actSuccess.body.data.request.id;
+
+    // 7. Verify receipt endpoint
+    const receipt = await auth(request(app).get(`/api/v1/requests/${liveReqId}/receipt`));
+    expect(receipt.status).toBe(200);
+    expect(receipt.body.data.caretaker_note).toContain('1 hour before');
+    expect(receipt.body.data.consent_recorded.privacy_policy_accepted).toBe(true);
   });
 });

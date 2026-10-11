@@ -20,8 +20,9 @@ export function CustomerRequestFilters({
   const tabs = [
     { key: 'ALL', label: 'All Requests', count: counts.all ?? 0 },
     { key: 'ACTIVE', label: 'Upcoming & Active', count: counts.active ?? 0, badge: true },
+    { key: 'DRAFTS', label: 'Queued Drafts', count: counts.drafts ?? 0, badge: true },
     { key: 'COMPLETED', label: 'Completed', count: counts.completed ?? 0 },
-    { key: 'REVIEW', label: 'Drafts / In Review', count: counts.review ?? 0 },
+    { key: 'REVIEW', label: 'In Review', count: counts.review ?? 0 },
   ];
 
   return (

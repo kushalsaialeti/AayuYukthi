@@ -13,7 +13,7 @@ export function ReviewQuestion({
     ? serviceTitles.join(', ')
     : (serviceTitle || 'Not selected');
 
-  const eyebrow = cmsConfig.eyebrow || 'Step 9 • Review Care Request';
+  const eyebrow = cmsConfig.eyebrow || 'Step 7 of 7 • Review & Verification';
   const title = cmsConfig.title || 'Review your journey details';
   const desc = cmsConfig.desc ||
     'Please confirm all details before submitting. You can click Edit on any section to make changes.';
@@ -40,8 +40,9 @@ export function ReviewQuestion({
     },
     {
       step: 4,
-      label: 'Visit Purpose',
+      label: 'Visit Purpose & Directives',
       value: draft.appointmentType || 'Consultation & Accompaniment',
+      sub: draft.additionalRequirements ? `Directives: ${draft.additionalRequirements}` : null,
       icon: 'edit_note',
     },
     {
@@ -60,23 +61,10 @@ export function ReviewQuestion({
     },
     {
       step: 6,
-      label: 'Transit / Pickup',
+      label: 'Transit, Updates & Consent',
       value: draft.pickupRequired ? 'Doorstep Transit Required' : 'Direct Hospital Rendezvous',
-      sub: draft.pickupRequired ? draft.pickupAddress : 'Main reception rendezvous',
-      icon: 'local_taxi',
-    },
-    {
-      step: 7,
-      label: 'Journey Updates Recipient',
-      value: draft.updatePhone || 'Registered Account Phone',
-      sub: 'SMS & WhatsApp milestone notifications',
-      icon: 'notifications_active',
-    },
-    {
-      step: 8,
-      label: 'Additional Requirements',
-      value: draft.additionalRequirements || 'Standard companion accompaniment',
-      icon: 'accessible',
+      sub: `${draft.pickupRequired && draft.pickupAddress ? draft.pickupAddress + ' • ' : ''}${draft.updatePhone ? 'Updates: ' + draft.updatePhone + ' • ' : ''}Consent: Accepted`,
+      icon: 'verified_user',
     },
   ];
 

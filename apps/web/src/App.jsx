@@ -11,6 +11,7 @@ import { CustomerLayout, CustomerDashboard } from './pages/Customer.jsx';
 import { Onboarding, OnboardingSuccess, RecipientsPage } from './pages/Onboarding.jsx';
 import { ProfilePage } from './pages/ProfilePage.jsx';
 import { RequestCare } from './pages/RequestCare.jsx';
+import { CareRequestConfirmation } from './pages/CareRequestConfirmation.jsx';
 import { MyRequests } from './pages/MyRequests.jsx';
 import { RequestDetail } from './pages/RequestDetail.jsx';
 import { NotificationsPage, SupportList, SupportNew, SupportThread } from './pages/Support.jsx';
@@ -102,6 +103,8 @@ function PublicRoutes({ t, locale, contact }) {
       <Route path="/hospitals" element={<Hospitals t={t} locale={locale} />} />
       <Route path="/hospitals/:slug" element={<HospitalDetail t={t} locale={locale} />} />
       <Route path="/request-care" element={<RequestCare locale={locale} />} />
+      <Route path="/request-care/confirmed/:id" element={<CareRequestConfirmation />} />
+      <Route path="/request-care/receipt/:id" element={<CareRequestConfirmation />} />
       <Route path="/about" element={<About t={t} locale={locale} />} />
       <Route path="/contact" element={<Contact t={t} contact={contact} />} />
       <Route path="*" element={<div className="pub-container" style={{ padding: '48px 0' }}><h1>404</h1><p>Page not found.</p></div>} />
@@ -123,6 +126,10 @@ function AppRoutes({ t, locale, contact }) {
           <Route path="/app" element={<CustomerDashboard />} />
           <Route path="/request-care" element={<RequestCare locale={locale} />} />
           <Route path="/app/request-care" element={<RequestCare locale={locale} />} />
+          <Route path="/request-care/confirmed/:id" element={<CareRequestConfirmation />} />
+          <Route path="/request-care/receipt/:id" element={<CareRequestConfirmation />} />
+          <Route path="/app/requests/:id/receipt" element={<CareRequestConfirmation />} />
+          <Route path="/app/requests/:id/confirmed" element={<CareRequestConfirmation />} />
           <Route path="/app/recipients" element={<RecipientsPage />} />
           <Route path="/app/recipients/new" element={<RecipientsPage forceNew />} />
           <Route path="/recipients" element={<Navigate to="/app/recipients" replace />} />

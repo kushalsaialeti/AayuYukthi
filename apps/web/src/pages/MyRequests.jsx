@@ -38,12 +38,15 @@ export function MyRequests() {
   useDocumentMeta('My Care Requests', 'Track upcoming hospital visits, monitor companion milestones, and view notes.');
 
   const [requests, setRequests] = useState(null);
+  const [drafts, setDrafts] = useState([]);
   const [recipients, setRecipients] = useState([]);
   const [cmsBlocks, setCmsBlocks] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState(null);
+  const [activatingId, setActivatingId] = useState(null);
+  const [actionMessage, setActionMessage] = useState(null);
 
   // Filter States - Persisted across refreshes
   const [selectedTab, setSelectedTab] = useState(() => {
@@ -93,12 +96,14 @@ export function MyRequests() {
   const fetchLiveRequests = async (silent = false) => {
     if (!silent) setIsSyncing(true);
     try {
-      const [reqsData, recsData, blocksData] = await Promise.all([
+      const [reqsData, draftsData, recsData, blocksData] = await Promise.all([
         api.authedList({ limit: 100 }).catch(() => ({ data: [] })),
+        api.authedDraftsList().catch(() => ({ data: [] })),
         recipients.length === 0 ? api.recipients({ limit: 50 }).catch(() => ({ data: [] })) : Promise.resolve({ data: recipients }),
         Object.keys(cmsBlocks).length === 0 ? api.blocks(CMS_KEYS).catch(() => ({})) : Promise.resolve(cmsBlocks),
       ]);
       setRequests(reqsData?.data || []);
+      setDrafts(draftsData?.data || draftsData || []);
       if (recsData?.data?.length && recipients.length === 0) setRecipients(recsData.data);
       if (blocksData && Object.keys(cmsBlocks).length === 0) setCmsBlocks(blocksData);
       setLastSyncedAt(new Date());
@@ -107,6 +112,67 @@ export function MyRequests() {
     } finally {
       setIsSyncing(false);
       setLoading(false);
+    }
+  };
+
+  const handleActivateDraft = async (draftId) => {
+    setActivatingId(draftId);
+    setActionMessage(null);
+    try {
+      await api.authedDraftActivate(draftId);
+      setActionMessage({ type: 'success', text: 'Success! Care request has been activated and submitted to hospital coordination.' });
+      await fetchLiveRequests(false);
+      handleTabChange('ACTIVE');
+    } catch (err) {
+      setActionMessage({ type: 'error', text: err.message || 'Could not activate draft.' });
+    } finally {
+      setActivatingId(null);
+    }
+  };
+
+  const handleDeleteDraft = async (draftId) => {
+    if (!window.confirm('Are you sure you want to delete this draft?')) return;
+    setActivatingId(draftId);
+    setActionMessage(null);
+    try {
+      await api.authedDraftDelete(draftId);
+      setActionMessage({ type: 'success', text: 'Draft deleted successfully.' });
+      await fetchLiveRequests(false);
+    } catch (err) {
+      setActionMessage({ type: 'error', text: err.message || 'Could not delete draft.' });
+    } finally {
+      setActivatingId(null);
+    }
+  };
+
+  const handleResumeDraft = (d) => {
+    try {
+      const p = d.payload || {};
+      const normalizedDraft = {
+        recipientId: p.recipient_id || p.recipientId || null,
+        serviceId: p.service_id || p.serviceId || null,
+        serviceIds: p.service_ids || (p.service_id ? [p.service_id] : []),
+        hospitalId: p.hospital_id || p.hospitalId || null,
+        appointmentType: p.appointment_type || p.appointmentType || '',
+        additionalRequirements: p.additional_requirements || p.additionalRequirements || '',
+        appointmentDate: p.appointment_date || p.appointmentDate || '',
+        timeSlot: p.time_slot || p.timeSlot || 'Morning (08:00 AM – 12:00 PM)',
+        scheduleAt: p.schedule_at || p.scheduleAt || null,
+        pickupRequired: p.pickup_required ?? p.pickupRequired ?? false,
+        pickupAddress: p.pickup_address || p.pickupAddress || '',
+        dropoffAddress: p.dropoff_address || p.dropoffAddress || '',
+        updatePhone: p.update_phone || p.updatePhone || '',
+        consentAccepted: p.consent_accepted ?? p.consentAccepted ?? false,
+      };
+      sessionStorage.setItem('ay_guided_draft_v2', JSON.stringify(normalizedDraft));
+      const targetStep = Math.min(Math.max(Number(d.current_step) || 1, 1), 7);
+      sessionStorage.setItem('ay_guided_draft_v2_step', String(targetStep));
+      if (d.idempotency_key) {
+        sessionStorage.setItem('ay_guided_draft_idempotency_key', d.idempotency_key);
+      }
+      navigate('/request-care');
+    } catch (err) {
+      console.error('Failed to resume draft:', err);
     }
   };
 
@@ -135,17 +201,17 @@ export function MyRequests() {
     };
   }, []);
 
-
   // Compute counts
   const counts = useMemo(() => {
     const list = requests || [];
     return {
       all: list.length,
       active: list.filter((r) => ACTIVE_STATUSES.has(r.status)).length,
+      drafts: (drafts || []).length,
       completed: list.filter((r) => r.status === 'COMPLETED').length,
       review: list.filter((r) => r.status === 'UNDER_REVIEW' || r.status === 'REQUEST_RECEIVED').length,
     };
-  }, [requests]);
+  }, [requests, drafts]);
 
   // Extract unique hospital names from customer's requests
   const uniqueHospitals = useMemo(() => {
@@ -429,8 +495,217 @@ export function MyRequests() {
         }}
       />
 
-      {/* Requests Stack / Grid */}
-      {filteredRequests.length === 0 ? (
+      {/* Queued Notice Banner */}
+      {searchParams.get('notice') === 'queued' && (
+        <div style={{ background: '#fef3c7', border: '1px solid #f59e0b', borderRadius: '12px', padding: '14px 18px', display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '1rem' }}>
+          <span className="material-symbols-outlined" style={{ color: '#d97706', fontSize: 24 }}>info</span>
+          <div style={{ fontSize: '14px', color: '#92400e', lineHeight: 1.4 }}>
+            <strong>Notice:</strong> Because an active care request is already ongoing for this recipient, your booking was saved as a <strong>Draft</strong>. Once their ongoing request completes, you can activate this draft below.
+          </div>
+        </div>
+      )}
+
+      {/* Action Notification Message */}
+      {actionMessage && (
+        <div style={{ background: actionMessage.type === 'success' ? '#ecfdf5' : '#fee2e2', border: `1px solid ${actionMessage.type === 'success' ? '#10b981' : '#ef4444'}`, borderRadius: '12px', padding: '14px 18px', display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '1rem' }}>
+          <span className="material-symbols-outlined" style={{ color: actionMessage.type === 'success' ? '#059669' : '#dc2626', fontSize: 24 }}>
+            {actionMessage.type === 'success' ? 'check_circle' : 'error'}
+          </span>
+          <div style={{ fontSize: '14px', color: actionMessage.type === 'success' ? '#065f46' : '#991b1b', lineHeight: 1.4 }}>
+            {actionMessage.text}
+          </div>
+        </div>
+      )}
+
+      {/* Drafts Tab View */}
+      {selectedTab === 'DRAFTS' ? (
+        drafts.length === 0 ? (
+          <div style={{
+            backgroundColor: 'var(--cust-surface-container-lowest)',
+            borderRadius: '1rem',
+            padding: '3rem 2rem',
+            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '1rem',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+            border: '1px solid rgba(0,0,0,0.03)'
+          }}>
+            <div style={{
+              width: '3.5rem',
+              height: '3.5rem',
+              borderRadius: '9999px',
+              backgroundColor: 'var(--cust-secondary-container)',
+              color: 'var(--cust-primary)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '30px' }}>drafts</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', maxWidth: '28rem' }}>
+              <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600, color: 'var(--cust-on-surface)' }}>
+                No queued drafts found
+              </h3>
+              <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--cust-secondary)' }}>
+                When you make a booking for a recipient who already has an ongoing active request, that booking will be safely stored here as a draft.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gap: '1rem' }}>
+            {drafts.map((d) => (
+              <div
+                key={d.id}
+                style={{
+                  backgroundColor: 'var(--cust-surface-container-lowest)',
+                  borderRadius: '1rem',
+                  padding: '1.5rem',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+                  border: '1px solid rgba(0,0,0,0.05)',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+                  <div>
+                    <div style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      padding: '0.25rem 0.65rem',
+                      borderRadius: '0.5rem',
+                      background: !d.is_complete ? '#fee2e2' : (d.has_active_request ? '#fef3c7' : '#ecfdf5'),
+                      color: !d.is_complete ? '#b91c1c' : (d.has_active_request ? '#b45309' : '#047857'),
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      marginBottom: '0.5rem'
+                    }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                        {!d.is_complete ? 'edit_note' : (d.has_active_request ? 'hourglass_top' : 'task_alt')}
+                      </span>
+                      <span>
+                        {!d.is_complete
+                          ? 'Incomplete Draft (Details Required)'
+                          : (d.has_active_request
+                              ? 'Queued Draft (Active Request in Progress)'
+                              : 'Draft Ready to Activate')}
+                      </span>
+                    </div>
+
+                    <h3 style={{ margin: '0 0 0.35rem', fontSize: '1.125rem', fontWeight: 600, color: 'var(--cust-on-surface)' }}>
+                      {d.service_title || 'Care Service'} • Patient: {d.recipient_name}
+                    </h3>
+                    <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--cust-secondary)' }}>
+                      Destination: <strong>{d.hospital_name || 'Hospital Campus'}</strong>
+                      {d.payload?.appointment_date && ` • Visit Date: ${d.payload.appointment_date}`}
+                    </p>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    {!d.is_complete ? (
+                      <button
+                        type="button"
+                        className="cust-btn-primary"
+                        onClick={() => handleResumeDraft(d)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.4rem',
+                          padding: '0.5rem 1rem',
+                        }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_forward</span>
+                        <span>Resume Booking</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="cust-btn-primary"
+                        disabled={d.has_active_request || activatingId === d.id}
+                        onClick={() => handleActivateDraft(d.id)}
+                        style={{
+                          opacity: d.has_active_request ? 0.6 : 1,
+                          cursor: d.has_active_request ? 'not-allowed' : 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.4rem'
+                        }}
+                        title={d.has_active_request ? 'Ongoing active request must complete first' : 'Push this draft to live request'}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: 18 }}>rocket_launch</span>
+                        <span>{activatingId === d.id ? 'Activating…' : 'Push to Live Request'}</span>
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteDraft(d.id)}
+                      disabled={activatingId === d.id}
+                      style={{
+                        padding: '0.5rem 0.75rem',
+                        borderRadius: '0.5rem',
+                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                        background: '#fff',
+                        color: '#dc2626',
+                        fontSize: '0.8125rem',
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.3rem',
+                      }}
+                      title="Discard / Delete this draft"
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>
+                      <span>Delete</span>
+                    </button>
+                  </div>
+                </div>
+
+                {!d.is_complete && d.missing_fields?.length > 0 && (
+                  <div style={{
+                    marginTop: '1rem',
+                    padding: '0.75rem 1rem',
+                    borderRadius: '0.5rem',
+                    background: '#fef2f2',
+                    border: '1px solid #fecaca',
+                    fontSize: '0.8125rem',
+                    color: '#991b1b',
+                    display: 'flex',
+                    gap: '0.5rem',
+                    alignItems: 'center'
+                  }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#dc2626', flexShrink: 0 }}>warning</span>
+                    <span>
+                      <strong>Missing Details:</strong> {d.missing_fields.join(', ')}. Click <strong>Resume Booking</strong> to complete these steps.
+                    </span>
+                  </div>
+                )}
+
+                {d.is_complete && d.has_active_request && (
+                  <div style={{
+                    marginTop: '1rem',
+                    padding: '0.75rem 1rem',
+                    borderRadius: '0.5rem',
+                    background: '#fffbeb',
+                    border: '1px solid #fde68a',
+                    fontSize: '0.8125rem',
+                    color: '#92400e',
+                    display: 'flex',
+                    gap: '0.5rem',
+                    alignItems: 'center'
+                  }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#d97706', flexShrink: 0 }}>info</span>
+                    <span>
+                      <strong>Ongoing Request in Progress:</strong> {d.recipient_name} currently has an ongoing active care request. As soon as that request completes or cancels, you can push this draft to live immediately.
+                    </span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )
+      ) : filteredRequests.length === 0 ? (
         <div style={{
           backgroundColor: 'var(--cust-surface-container-lowest)',
           borderRadius: '1rem',
@@ -487,7 +762,7 @@ export function MyRequests() {
       )}
 
       {/* Pagination & Bottom Controls */}
-      {filteredRequests.length > 0 && (
+      {selectedTab !== 'DRAFTS' && filteredRequests.length > 0 && (
         <div style={{
           display: 'flex',
           flexWrap: 'wrap',

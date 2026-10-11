@@ -12,6 +12,7 @@ const RELATIONSHIPS = [
 
 export function RecipientQuestion({
   recipients = [],
+  activeRecipientIds = [],
   selectedRecipientId,
   newRecipient,
   onSelectRecipient,
@@ -99,6 +100,15 @@ export function RecipientQuestion({
             <span className="material-symbols-outlined" style={{ color: 'var(--rq-primary)' }}>person_add</span>
             <div className="rq-option-title" style={{ color: 'var(--rq-primary)' }}>+ Add another family member</div>
           </button>
+        </div>
+      )}
+
+      {selectedRecipientId && activeRecipientIds.includes(selectedRecipientId) && (
+        <div style={{ background: '#fef3c7', border: '1px solid #f59e0b', borderRadius: '10px', padding: '12px 16px', marginBottom: '16px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <span className="material-symbols-outlined" style={{ color: '#d97706', fontSize: 22 }}>info</span>
+          <div style={{ fontSize: '13px', color: '#92400e', lineHeight: 1.4 }}>
+            <strong>Active Request Notice:</strong> This care recipient already has an active request in progress. You can still proceed; this new booking will be saved into your <strong>Drafts</strong> and can be activated once the ongoing request completes.
+          </div>
         </div>
       )}
 

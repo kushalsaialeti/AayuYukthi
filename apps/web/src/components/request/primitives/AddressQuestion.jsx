@@ -7,13 +7,20 @@ export function AddressQuestion({
   onPickupAddressChange,
   dropoffAddress,
   onDropoffAddressChange,
+  updatePhone,
+  onUpdatePhoneChange,
+  currentUserPhone,
+  consentAccepted,
+  onConsentAcceptedChange,
   cmsConfig = {},
   error,
+  consentError,
+  phoneError,
 }) {
-  const eyebrow = cmsConfig.eyebrow || 'Step 6 • Transit & Pickup';
-  const title = cmsConfig.title || 'Do you require home transit or doorstep pickup?';
+  const eyebrow = cmsConfig.eyebrow || 'Step 6 of 7 • Logistics & User Consent';
+  const title = cmsConfig.title || 'Transit Logistics & Care Consent';
   const desc = cmsConfig.desc ||
-    'We arrange sanitized transit with wheelchair boarding assistance from your residence to the hospital.';
+    'Specify pickup preferences, contact for journey updates, and provide mandatory care consent.';
 
   return (
     <div className="rq-question-container">
@@ -38,7 +45,7 @@ export function AddressQuestion({
           </div>
           <div className="rq-option-content">
             <div className="rq-option-title">Meet at Hospital</div>
-            <div className="rq-option-desc">Direct rendezvous at partner hospital main reception.</div>
+            <div className="rq-option-desc">Direct rendezvous at partner hospital main reception desk.</div>
           </div>
         </button>
 
@@ -87,11 +94,83 @@ export function AddressQuestion({
       )}
 
       {error && (
-        <div className="rq-error-msg" role="alert">
+        <div className="rq-error-msg" role="alert" style={{ marginTop: '12px' }}>
           <span className="material-symbols-outlined" style={{ fontSize: 18 }}>error</span>
           <span>{error}</span>
         </div>
       )}
+
+      {/* Updates Phone */}
+      <div style={{ background: 'var(--rq-surface-alt)', padding: '20px', borderRadius: '12px', border: '1px solid var(--rq-border)', marginTop: '20px' }}>
+        <div className="rq-form-group" style={{ marginBottom: 0 }}>
+          <label className="rq-label" htmlFor="rq-update-phone">
+            Who should receive WhatsApp & SMS updates?
+          </label>
+          <p style={{ fontSize: '13px', color: 'var(--rq-text-muted)', marginBottom: '8px' }}>
+            Live companion milestones, doctor consultation notes, and arrival alerts will be dispatched here.
+          </p>
+          <input
+            id="rq-update-phone"
+            type="tel"
+            className="rq-input"
+            placeholder={currentUserPhone || '+91 98765 43210'}
+            value={updatePhone || ''}
+            onChange={(e) => onUpdatePhoneChange(e.target.value)}
+          />
+          {phoneError && (
+            <div className="rq-error-msg" role="alert" style={{ marginTop: '8px' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>error</span>
+              <span>{phoneError}</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Mandatory Step 6 Consent Checkbox */}
+      <div
+        style={{
+          marginTop: '20px',
+          padding: '16px 20px',
+          borderRadius: '12px',
+          background: consentAccepted ? 'rgba(16, 185, 129, 0.08)' : 'rgba(30, 58, 138, 0.04)',
+          border: consentError ? '2px solid #ef4444' : '1px solid var(--rq-border)',
+          transition: 'all 0.2s ease',
+        }}
+      >
+        <label
+          htmlFor="rq-mandatory-consent"
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '12px',
+            cursor: 'pointer',
+            userSelect: 'none',
+          }}
+        >
+          <input
+            id="rq-mandatory-consent"
+            type="checkbox"
+            checked={Boolean(consentAccepted)}
+            onChange={(e) => onConsentAcceptedChange(e.target.checked)}
+            style={{
+              width: '20px',
+              height: '20px',
+              marginTop: '2px',
+              cursor: 'pointer',
+              accentColor: 'var(--rq-primary, #059669)',
+            }}
+          />
+          <span style={{ fontSize: '14px', lineHeight: '1.5', color: 'var(--rq-text)' }}>
+            <strong>Mandatory Consent:</strong> I agree to the <strong>Terms &amp; Conditions</strong> and acknowledge the <strong>Privacy Policy</strong> for professional hospital accompaniment care. I authorize AayuYukthi to assign a trained care companion for this visit.
+          </span>
+        </label>
+        {consentError && (
+          <div className="rq-error-msg" role="alert" style={{ marginTop: '8px', marginLeft: '32px' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>error</span>
+            <span>{consentError}</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
