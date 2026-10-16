@@ -9,7 +9,7 @@ on:
       target_url:
         description: 'Target API endpoint to ping'
         required: false
-        default: 'https://aayuyukthi-api.onrender.com'
+        default: 'https://aayuyukthi-20f8.onrender.com'
 
 jobs:
   heartbeat:
@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: Send Keep-Alive Wakeup Ping
         env:
-          DEFAULT_URL: ${{ secrets.RENDER_API_URL || 'https://aayuyukthi-api.onrender.com' }}
+          DEFAULT_URL: ${{ secrets.RENDER_API_URL || 'https://aayuyukthi-20f8.onrender.com' }}
           INPUT_URL: ${{ github.event.inputs.target_url }}
         run: |
           URL="${INPUT_URL:-$DEFAULT_URL}"
