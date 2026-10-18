@@ -402,15 +402,17 @@ export function CustomerRequestCard({ request, onDownloadPdf }) {
                 <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>article</span>
                 <span>View Visit Summary</span>
               </Link>
-              <button
-                type="button"
-                onClick={() => onDownloadPdf?.(request)}
-                className="cust-btn-secondary"
-                style={{ width: '100%', boxSizing: 'border-box', color: 'var(--cust-primary)' }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>picture_as_pdf</span>
-                <span>Download Notes (PDF)</span>
-              </button>
+              {onDownloadPdf && (
+                <button
+                  type="button"
+                  onClick={() => onDownloadPdf(request)}
+                  className="cust-btn-secondary"
+                  style={{ width: '100%', boxSizing: 'border-box', color: 'var(--cust-primary)' }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>picture_as_pdf</span>
+                  <span>Download Notes (PDF)</span>
+                </button>
+              )}
             </>
           ) : (
             <Link

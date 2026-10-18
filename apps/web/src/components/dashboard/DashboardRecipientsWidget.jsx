@@ -13,25 +13,11 @@ function calculateAge(dobString) {
   return Number.isNaN(age) || age < 0 ? null : age;
 }
 
-const AVATAR_PRESETS = {
-  mother:
-    'https://lh3.googleusercontent.com/aida-public/AB6AXuD6sp8k8cmMPBfnukguURh_AJz3i-Jj4AofgyvjIq-150i_A3cmZEAYN-swTi7neusLr-UlQ90wYc4BwJ0OEroAntufio4sd00_thLCM5q3H7GhBBppmIpJgZ9QPGMAvBlSENCaKULBhlBjrj0y8Wql2WMu0I0xGpNpvWm22fERVLAGxpBz_H8tEj8Kni4Kxuuu5Rb23U-I_u38rfEBBIL-Kt0OLxIQPTy_R7_0iWXVsrKyk2DlIN8',
-  father:
-    'https://lh3.googleusercontent.com/aida-public/AB6AXuDvnlgvnxSkTutuNQtR3vVmKoUTF12qZglQXpaQxySjfCAaa7sedcTcwJRQqIn-5X-r2JVQCKt_SAo2gRfKSn7RfOhFkbYnObN9jE1z3U2AkF2GxT8bIUre-r-PIt2GYF8VRO50keZ2fYR1dRkj6TMWk9E-64cwUM76tubF0BTeAG9Nxd6N-PEv9EHtBUqWWQm3mkvtemTjsHSkPftOBHiFVybP2sEGH3WJ_ms8T275bc6l1D8lk4g',
-  female:
-    'https://lh3.googleusercontent.com/aida-public/AB6AXuDiqqIFmNiXAWNFjnw9vaupT5yyikS7P6IttIlqfc8z92pULyZGxTmK7V8f8zkTXVOTRbOb-fnW-u-J_3UY1ZIfqlIifVxTLLVsGXAcJ2J6foyODjkdKZ1EwH3nqXU52ja6xwWz9e-CePkyZCHWnYz6ey9shgZ-DgFcTf7_wZZcTV0fGZkaaBJMADVjsLzdnTdZsuPQkZ8w2lSqDATmcjFT4HNbV7948MZdNqAPPudCAPrc7PHLpCM',
-  default:
-    'https://lh3.googleusercontent.com/aida-public/AB6AXuBRdZ_OEWj20PzUkMZllhj199BizAnpnZiD9lofcwX5eXaHDTzaTW0Ndrjfoefz1m5dqGiD9DtRZjq8YYyLcx8nDY9ZEnpb-_AkNI5WgXUrtUSdrzomnq_AT9ioeP6A-cUyru7gj32yDB_zh62QtHYBL4p4VGAWmRBac3NiuT2wjyp7_KAp4wXdkW6xZ2Iq-sB9alKx7_AWlhCw5mHTIPT8KvcH-ui6cJ4emQLxATK_XXjAOY8MkDo',
-};
-
-function getAvatarUrl(recipient) {
-  if (recipient?.image_url) return recipient.image_url;
-  const rel = (recipient?.relationship || '').toLowerCase();
-  const gen = (recipient?.gender || '').toLowerCase();
-  if (rel.includes('mother') || rel.includes('mom')) return AVATAR_PRESETS.mother;
-  if (rel.includes('father') || rel.includes('dad')) return AVATAR_PRESETS.father;
-  if (gen === 'female' || rel.includes('wife')) return AVATAR_PRESETS.female;
-  return AVATAR_PRESETS.default;
+function getInitials(name) {
+  if (!name) return 'FM';
+  const parts = name.trim().split(' ');
+  if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  return name.slice(0, 2).toUpperCase();
 }
 
 export function DashboardRecipientsWidget({ recipients = [] }) {
@@ -39,7 +25,7 @@ export function DashboardRecipientsWidget({ recipients = [] }) {
     <div className="cust-card" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: 'var(--cust-on-surface)' }}>
-          Care Recipients at a Glance
+          Care Recipients
         </h3>
         <Link
           to="/app/recipients/new"
@@ -54,12 +40,12 @@ export function DashboardRecipientsWidget({ recipients = [] }) {
           }}
         >
           <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>person_add</span>
-          <span>+ Add Family Member</span>
+          <span>+ Add</span>
         </Link>
       </div>
 
       {recipients.length === 0 ? (
-        <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--cust-secondary)', fontSize: '0.8125rem' }}>
+        <div style={{ padding: '1.25rem 0.5rem', textAlign: 'center', color: 'var(--cust-secondary)', fontSize: '0.8125rem' }}>
           <span>No care recipients added yet. </span>
           <Link to="/app/recipients/new" style={{ color: 'var(--cust-primary)', fontWeight: 600 }}>
             Add your first family member
@@ -69,10 +55,9 @@ export function DashboardRecipientsWidget({ recipients = [] }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           {recipients.slice(0, 4).map((rec) => {
             const age = calculateAge(rec.date_of_birth);
-            const avatar = getAvatarUrl(rec);
             const relation = rec.relationship || 'Family';
-
             const displayName = rec.full_name || rec.name || 'Recipient';
+            const initials = getInitials(displayName);
 
             return (
               <Link
@@ -81,11 +66,29 @@ export function DashboardRecipientsWidget({ recipients = [] }) {
                 className="dash-recipient-row"
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <img
-                    src={avatar}
-                    alt={displayName}
-                    style={{ width: '2.5rem', height: '2.5rem', borderRadius: '9999px', objectFit: 'cover' }}
-                  />
+                  {rec.image_url ? (
+                    <img
+                      src={rec.image_url}
+                      alt={displayName}
+                      style={{ width: '2.25rem', height: '2.25rem', borderRadius: '9999px', objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <div style={{
+                      width: '2.25rem',
+                      height: '2.25rem',
+                      borderRadius: '9999px',
+                      backgroundColor: 'var(--cust-surface-container-high, #e6e9e8)',
+                      color: 'var(--cust-primary, #004349)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 700,
+                      fontSize: '0.75rem',
+                      flexShrink: 0
+                    }}>
+                      {initials}
+                    </div>
+                  )}
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
                     <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--cust-on-surface)' }}>
                       {displayName}

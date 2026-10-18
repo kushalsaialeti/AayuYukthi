@@ -2,40 +2,43 @@ import React, { useState } from 'react';
 
 export function ProfileEmergencyContact({
   contact = null,
-  cmsNotice = '',
   onUpdateContact,
 }) {
   const [editing, setEditing] = useState(false);
-  const [alertSent, setAlertSent] = useState(false);
 
-  const defaultContact = {
-    name: 'Sunita Murthy',
-    relationship: 'Daughter / Sister',
-    phone: '+91 98765 11223',
-    permissions: ['Milestone Broadcast', 'Escort Directive Authorization'],
-  };
+  const [name, setName] = useState(contact?.name || '');
+  const [phone, setPhone] = useState(contact?.phone || '');
+  const [relation, setRelation] = useState(contact?.relationship || '');
 
-  const activeContact = contact || defaultContact;
-  const [name, setName] = useState(activeContact.name);
-  const [phone, setPhone] = useState(activeContact.phone);
-  const [relation, setRelation] = useState(activeContact.relationship);
-
-  const handleTestAlert = () => {
-    setAlertSent(true);
-    setTimeout(() => setAlertSent(false), 4000);
+  const handleStartEdit = () => {
+    setName(contact?.name || '');
+    setPhone(contact?.phone || '');
+    setRelation(contact?.relationship || '');
+    setEditing(true);
   };
 
   const handleSave = (e) => {
     e.preventDefault();
     if (onUpdateContact) {
       onUpdateContact({
-        name,
-        phone,
-        relationship: relation,
-        permissions: activeContact.permissions,
+        name: name.trim(),
+        phone: phone.trim(),
+        relationship: relation.trim(),
       });
     }
     setEditing(false);
+  };
+
+  const handleRemove = () => {
+    if (window.confirm('Remove this emergency contact?')) {
+      if (onUpdateContact) {
+        onUpdateContact(null);
+      }
+      setName('');
+      setPhone('');
+      setRelation('');
+      setEditing(false);
+    }
   };
 
   const getInitials = (n) => {
@@ -44,6 +47,8 @@ export function ProfileEmergencyContact({
     if (p.length >= 2) return `${p[0][0]}${p[1][0]}`.toUpperCase();
     return n.slice(0, 2).toUpperCase();
   };
+
+  const hasContact = Boolean(contact && contact.name);
 
   return (
     <div className="profile-section-card" id="section-emergency">
@@ -54,15 +59,17 @@ export function ProfileEmergencyContact({
             <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>contact_emergency</span>
           </div>
           <div>
-            <h3 className="profile-section-title">Secondary & Emergency Escalation Contact</h3>
-            <p className="profile-section-desc">Authorized to give consent during hospital escorts if primary is unreachable.</p>
+            <h3 className="profile-section-title">Emergency Contact</h3>
+            <p className="profile-section-desc">Designated contact person if you are unreachable during a visit.</p>
           </div>
         </div>
 
-        <span className="profile-role-pill" style={{ backgroundColor: 'var(--cust-surface-container-high)', color: 'var(--cust-surface-tint)' }}>
-          <span style={{ width: '6px', height: '6px', borderRadius: '9999px', backgroundColor: 'var(--cust-surface-tint)', display: 'inline-block', marginRight: '4px' }} />
-          Active & Verified
-        </span>
+        {hasContact && (
+          <span className="profile-role-pill" style={{ backgroundColor: 'var(--cust-surface-container-high)', color: 'var(--cust-surface-tint)' }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '9999px', backgroundColor: 'var(--cust-surface-tint)', display: 'inline-block', marginRight: '4px' }} />
+            Active Contact
+          </span>
+        )}
       </div>
 
       {/* Explanatory Reassurance Note */}
@@ -71,107 +78,112 @@ export function ProfileEmergencyContact({
           info
         </span>
         <p style={{ margin: 0 }}>
-          {cmsNotice || 'This contact receives automated WhatsApp milestones, real-time GPS transit links, and can authorize emergency clinical escort directives if you cannot be reached within 15 minutes of doctor consultations.'}
+          This contact will be notified with real-time updates and reached out to if urgent decisions are required while escorting your care recipient.
         </p>
       </div>
 
-      {alertSent && (
-        <div style={{
-          padding: '0.75rem 1rem',
-          borderRadius: '0.75rem',
-          backgroundColor: '#e6f7f2',
-          color: 'var(--cust-surface-tint)',
-          fontWeight: 600,
-          fontSize: '0.875rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-        }}>
-          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>check_circle</span>
-          <span>Simulated WhatsApp test broadcast transmitted to {activeContact.name} ({activeContact.phone}).</span>
-        </div>
-      )}
-
-      {/* Secondary Contact Card Detail */}
+      {/* Contact Display / Edit */}
       {!editing ? (
-        <div className="profile-contact-card">
-          <div className="profile-contact-info">
-            <div className="profile-contact-avatar">
-              {getInitials(activeContact.name)}
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--cust-on-surface)' }}>
-                {activeContact.name}
-              </span>
-              <span style={{ fontSize: '0.875rem', color: 'var(--cust-secondary)' }}>
-                {activeContact.relationship} • {activeContact.phone}
-              </span>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginTop: '0.35rem' }}>
-                {activeContact.permissions?.map((perm, idx) => (
-                  <span key={idx} className="profile-pill-tag">
-                    {perm}
-                  </span>
-                ))}
+        hasContact ? (
+          <div className="profile-contact-card">
+            <div className="profile-contact-info">
+              <div className="profile-contact-avatar">
+                {getInitials(contact.name)}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--cust-on-surface)' }}>
+                  {contact.name}
+                </span>
+                <span style={{ fontSize: '0.875rem', color: 'var(--cust-secondary)' }}>
+                  {contact.relationship ? `${contact.relationship} • ` : ''}{contact.phone}
+                </span>
               </div>
             </div>
-          </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', alignSelf: 'flex-end' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', alignSelf: 'flex-end' }}>
+              <button
+                type="button"
+                className="profile-btn-outline"
+                onClick={handleStartEdit}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>edit</span>
+                <span>Edit</span>
+              </button>
+              <button
+                type="button"
+                className="profile-btn-outline"
+                onClick={handleRemove}
+                style={{ color: 'var(--cust-error, #ba1a1a)' }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>delete</span>
+                <span>Remove</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '1.25rem',
+            backgroundColor: 'var(--cust-surface-container-low, #f2f4f3)',
+            borderRadius: '0.75rem',
+            flexWrap: 'wrap',
+            gap: '1rem',
+          }}>
+            <div>
+              <p style={{ margin: '0 0 0.25rem', fontWeight: 600, color: 'var(--cust-on-surface)' }}>No emergency contact listed</p>
+              <p style={{ margin: 0, fontSize: '0.8125rem', color: 'var(--cust-secondary)' }}>Add an alternate family member or friend for visit escalations.</p>
+            </div>
             <button
               type="button"
-              className="profile-btn-outline"
-              onClick={handleTestAlert}
-              title="Test WhatsApp Alert Broadcast"
-              style={{ padding: '0.45rem 0.65rem' }}
+              className="cust-btn-primary"
+              onClick={handleStartEdit}
+              style={{ padding: '0.5rem 1rem', borderRadius: '0.75rem', fontSize: '0.875rem' }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>ring_volume</span>
-              <span>Test Broadcast</span>
-            </button>
-            <button
-              type="button"
-              className="profile-btn-outline"
-              onClick={() => setEditing(true)}
-            >
-              <span>Modify Details</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>
+              <span>Add Emergency Contact</span>
             </button>
           </div>
-        </div>
+        )
       ) : (
         <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div className="profile-form-grid">
             <div className="profile-field-group">
-              <label className="profile-field-label">Contact Name</label>
+              <label className="profile-field-label">Contact Full Name</label>
               <div className="profile-input-box">
                 <input
                   type="text"
                   className="profile-input"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Priya Sharma"
                   required
                 />
               </div>
             </div>
             <div className="profile-field-group">
-              <label className="profile-field-label">Mobile Phone (WhatsApp enabled)</label>
+              <label className="profile-field-label">Mobile Phone Number</label>
               <div className="profile-input-box">
                 <input
                   type="tel"
                   className="profile-input"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
+                  placeholder="e.g. +91 98765 43210"
                   required
                 />
               </div>
             </div>
             <div className="profile-field-group full-width">
-              <label className="profile-field-label">Relationship & Authorization Scope</label>
+              <label className="profile-field-label">Relationship to You / Family</label>
               <div className="profile-input-box">
                 <input
                   type="text"
                   className="profile-input"
                   value={relation}
                   onChange={(e) => setRelation(e.target.value)}
-                  placeholder="e.g. Daughter / Sister"
+                  placeholder="e.g. Sister, Brother, Neighbor, Family Doctor"
                   required
                 />
               </div>

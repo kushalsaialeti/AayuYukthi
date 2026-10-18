@@ -285,6 +285,7 @@ export function CareRecipientsDirectory({ forceNew = false }) {
         <CustomerHeader
           isCollapsed={isCollapsed}
           unreadCount={unreadCount}
+          onMenuToggle={() => setIsMobileOpen((prev) => !prev)}
         />
         <main className={`customer-main-shell ${isCollapsed ? 'is-collapsed' : ''}`}>
           {children}

@@ -7,9 +7,9 @@ export function ProfilePersonalInfoForm({
   status = null,
 }) {
   const [fullName, setFullName] = useState(user?.full_name || '');
-  const [relationship, setRelationship] = useState(user?.preferences?.relationship || 'Son (Primary Kin)');
+  const [relationship, setRelationship] = useState(user?.preferences?.relationship || 'Family Member');
   const [metroHub, setMetroHub] = useState(user?.preferences?.metro_hub || 'Bengaluru, Karnataka');
-  const [homeAddress, setHomeAddress] = useState(user?.preferences?.home_address || '#42, 6th Cross, 100Ft Road, Indiranagar, Bengaluru 560038');
+  const [homeAddress, setHomeAddress] = useState(user?.preferences?.home_address || '');
   const [prefs, setPrefs] = useState({
     sms: user?.preferences?.sms ?? true,
     email: user?.preferences?.email ?? true,
@@ -22,7 +22,7 @@ export function ProfilePersonalInfoForm({
       if (user.preferences) {
         if (user.preferences.relationship) setRelationship(user.preferences.relationship);
         if (user.preferences.metro_hub) setMetroHub(user.preferences.metro_hub);
-        if (user.preferences.home_address) setHomeAddress(user.preferences.home_address);
+        if (user.preferences.home_address !== undefined) setHomeAddress(user.preferences.home_address || '');
         setPrefs({
           sms: user.preferences.sms ?? true,
           email: user.preferences.email ?? true,
@@ -34,9 +34,9 @@ export function ProfilePersonalInfoForm({
 
   const handleReset = () => {
     setFullName(user?.full_name || '');
-    setRelationship(user?.preferences?.relationship || 'Son (Primary Kin)');
+    setRelationship(user?.preferences?.relationship || 'Family Member');
     setMetroHub(user?.preferences?.metro_hub || 'Bengaluru, Karnataka');
-    setHomeAddress(user?.preferences?.home_address || '#42, 6th Cross, 100Ft Road, Indiranagar, Bengaluru 560038');
+    setHomeAddress(user?.preferences?.home_address || '');
     setPrefs({
       sms: user?.preferences?.sms ?? true,
       email: user?.preferences?.email ?? true,
@@ -62,23 +62,21 @@ export function ProfilePersonalInfoForm({
     setPrefs((prev) => ({ ...prev, [k]: !prev[k] }));
   };
 
+  const phoneDisplay = user?.phone_e164 || user?.phone || 'Not provided';
+
   return (
     <div className="profile-section-card" id="section-personal">
       {/* Header */}
       <div className="profile-section-header">
         <div className="profile-section-title-group">
           <div className="profile-section-icon-box">
-            <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>person_pin</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>person</span>
           </div>
           <div>
-            <h3 className="profile-section-title">Primary Caregiver Identity</h3>
-            <p className="profile-section-desc">Verified identity on record with partner hospital networks.</p>
+            <h3 className="profile-section-title">Personal Information</h3>
+            <p className="profile-section-desc">Manage your contact details and communication preferences.</p>
           </div>
         </div>
-
-        <span className="profile-role-pill">
-          Primary Account Owner
-        </span>
       </div>
 
       {status === 'saved' && (
@@ -94,7 +92,7 @@ export function ProfilePersonalInfoForm({
           gap: '0.5rem',
         }}>
           <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>check_circle</span>
-          <span>Personal information and preferences updated successfully.</span>
+          <span>Profile information updated successfully.</span>
         </div>
       )}
 
@@ -119,7 +117,7 @@ export function ProfilePersonalInfoForm({
         <div className="profile-form-grid">
           {/* Full Name */}
           <div className="profile-field-group">
-            <label className="profile-field-label">Full Legal Name</label>
+            <label className="profile-field-label">Full Name</label>
             <div className="profile-input-box">
               <input
                 type="text"
@@ -127,7 +125,7 @@ export function ProfilePersonalInfoForm({
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 required
-                placeholder="e.g. Anand Murthy"
+                placeholder="e.g. John Doe"
               />
             </div>
           </div>
@@ -153,26 +151,28 @@ export function ProfilePersonalInfoForm({
 
           {/* Mobile Contact */}
           <div className="profile-field-group">
-            <label className="profile-field-label">Mobile Contact (Hospital Handshake)</label>
+            <label className="profile-field-label">Mobile Number</label>
             <div className="profile-input-box">
               <input
-                type="tel"
+                type="text"
                 className="profile-input"
-                value={user?.phone_e164 || '+91 98765 43210'}
+                value={phoneDisplay}
                 readOnly
                 disabled
                 style={{ opacity: 0.85 }}
               />
-              <span className="profile-verified-chip">
-                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>verified</span>
-                OTP Verified
-              </span>
+              {(user?.phone_e164 || user?.phone) && (
+                <span className="profile-verified-chip">
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>verified</span>
+                  Verified
+                </span>
+              )}
             </div>
           </div>
 
           {/* Relationship */}
           <div className="profile-field-group">
-            <label className="profile-field-label">Relationship to Primary Recipient</label>
+            <label className="profile-field-label">Role in Family</label>
             <div className="profile-input-box">
               <select
                 className="profile-input"
@@ -180,20 +180,21 @@ export function ProfilePersonalInfoForm({
                 value={relationship}
                 onChange={(e) => setRelationship(e.target.value)}
               >
-                <option value="Son (Primary Kin)">Son (Primary Kin)</option>
+                <option value="Family Member">Family Member</option>
+                <option value="Son">Son</option>
                 <option value="Daughter">Daughter</option>
                 <option value="Spouse">Spouse</option>
-                <option value="Legal Guardian">Legal Guardian</option>
                 <option value="Parent">Parent</option>
                 <option value="Sibling">Sibling</option>
-                <option value="Relative / Kin">Relative / Kin</option>
+                <option value="Guardian">Guardian</option>
+                <option value="Other">Other</option>
               </select>
             </div>
           </div>
 
           {/* Primary Metropolitan Hub */}
           <div className="profile-field-group">
-            <label className="profile-field-label">Primary Metropolitan Hub</label>
+            <label className="profile-field-label">Primary City / Region</label>
             <div className="profile-input-box">
               <select
                 className="profile-input"
@@ -207,16 +208,13 @@ export function ProfilePersonalInfoForm({
                 <option value="Vijayawada, Andhra Pradesh">Vijayawada, Andhra Pradesh</option>
                 <option value="Chennai, Tamil Nadu">Chennai, Tamil Nadu</option>
               </select>
-              <span className="profile-pill-tag" style={{ backgroundColor: 'var(--cust-primary-fixed, #abeef6)', color: 'var(--cust-on-primary-fixed, #002023)' }}>
-                Active Metro
-              </span>
             </div>
           </div>
 
           {/* Notification Channels */}
           <div className="profile-field-group">
-            <label className="profile-field-label">Family Broadcast Channels</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', height: '3rem' }}>
+            <label className="profile-field-label">Notification Channels</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', height: '3rem', flexWrap: 'wrap' }}>
               {[
                 ['whatsapp', 'WhatsApp', 'chat'],
                 ['sms', 'SMS', 'sms'],
@@ -238,7 +236,7 @@ export function ProfilePersonalInfoForm({
                     type="checkbox"
                     checked={!!prefs[key]}
                     onChange={() => togglePref(key)}
-                    style={{ accentColor: 'var(--cust-primary-container, #0d5c63)' }}
+                    style={{ accentColor: 'var(--cust-primary, #004349)' }}
                   />
                   <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>{icon}</span>
                   <span>{label}</span>
@@ -249,18 +247,18 @@ export function ProfilePersonalInfoForm({
 
           {/* Home Residence Address */}
           <div className="profile-field-group full-width">
-            <label className="profile-field-label">Home Residence Address (Companion Transit Origin)</label>
+            <label className="profile-field-label">Home Address</label>
             <div className="profile-textarea-box">
               <textarea
                 className="profile-textarea"
                 rows={2}
                 value={homeAddress}
                 onChange={(e) => setHomeAddress(e.target.value)}
-                placeholder="Enter complete residence address for companion doorstep pickup..."
+                placeholder="Enter your home address for doorstep pickup & drop-off when requested..."
               />
             </div>
             <span className="profile-field-hint">
-              Used by medical transit escorts for coordinated home pickup & dropoffs.
+              Used when you request doorstep accompaniment and transit coordination.
             </span>
           </div>
         </div>
@@ -273,7 +271,7 @@ export function ProfilePersonalInfoForm({
             onClick={handleReset}
             disabled={busy}
           >
-            Reset Form
+            Reset
           </button>
           <button
             type="submit"
@@ -287,7 +285,7 @@ export function ProfilePersonalInfoForm({
             }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>save</span>
-            <span>{busy ? 'Saving Information…' : 'Save Personal Information'}</span>
+            <span>{busy ? 'Saving…' : 'Save Changes'}</span>
           </button>
         </div>
       </form>
