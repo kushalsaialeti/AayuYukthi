@@ -239,19 +239,156 @@ export function Home({ t, locale }) {
         items={familyItems}
       />
 
-      {/* Testimonials */}
-      {data.testimonials.length > 0 && (
-        <section className="pub-section tint">
-          <div className="pub-container">
-            <SectionHeadCenter
-              eyebrow={btx('home.testimonials.eyebrow')}
-              title={btx('home.testimonials.title') ?? t.testimonialsTitle}
-              sub={btx('home.testimonials.sub')}
-            />
-            <TestimonialCards testimonials={data.testimonials} tx={tx} />
+      {/* Our Promise to Every Family (Replaced fake reviews with genuine commitments) */}
+      <section className="pub-section tint">
+        <div className="pub-container">
+          <SectionHeadCenter
+            eyebrow="Our Commitment"
+            title="Our Care Promise to Your Family"
+            sub="Simple, respectful, and reliable support you can count on for every hospital visit."
+          />
+          <div className="pub-grid-4">
+            <div className="pub-card" style={{ borderRadius: '1rem', padding: '1.5rem', background: '#ffffff' }}>
+              <div
+                className="pub-icon-tile"
+                style={{ background: 'rgba(0, 67, 73, 0.08)', color: 'var(--pub-primary, #004349)', marginBottom: '1rem' }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '26px' }}>support_agent</span>
+              </div>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: '0 0 0.5rem', color: 'var(--pub-on-surface)' }}>
+                Always Beside You
+              </h3>
+              <p className="body" style={{ fontSize: '0.875rem', lineHeight: 1.55, color: 'var(--pub-on-variant)' }}>
+                A verified companion meets your loved one at the hospital entrance and stays with them throughout the visit.
+              </p>
+            </div>
+
+            <div className="pub-card" style={{ borderRadius: '1rem', padding: '1.5rem', background: '#ffffff' }}>
+              <div
+                className="pub-icon-tile"
+                style={{ background: 'rgba(0, 67, 73, 0.08)', color: 'var(--pub-primary, #004349)', marginBottom: '1rem' }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '26px' }}>chair</span>
+              </div>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: '0 0 0.5rem', color: 'var(--pub-on-surface)' }}>
+                Zero Queue Stress
+              </h3>
+              <p className="body" style={{ fontSize: '0.875rem', lineHeight: 1.55, color: 'var(--pub-on-variant)' }}>
+                We stand in line for tokens, OPD files, and pharmacy billing while your parent rests comfortably in quiet seating.
+              </p>
+            </div>
+
+            <div className="pub-card" style={{ borderRadius: '1rem', padding: '1.5rem', background: '#ffffff' }}>
+              <div
+                className="pub-icon-tile"
+                style={{ background: 'rgba(0, 67, 73, 0.08)', color: 'var(--pub-primary, #004349)', marginBottom: '1rem' }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '26px' }}>chat</span>
+              </div>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: '0 0 0.5rem', color: 'var(--pub-on-surface)' }}>
+                Updates on Your Phone
+              </h3>
+              <p className="body" style={{ fontSize: '0.875rem', lineHeight: 1.55, color: 'var(--pub-on-variant)' }}>
+                Receive clear WhatsApp or SMS messages when doctor consults finish, with clear photos of prescriptions.
+              </p>
+            </div>
+
+            <div className="pub-card" style={{ borderRadius: '1rem', padding: '1.5rem', background: '#ffffff' }}>
+              <div
+                className="pub-icon-tile"
+                style={{ background: 'rgba(0, 67, 73, 0.08)', color: 'var(--pub-primary, #004349)', marginBottom: '1rem' }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '26px' }}>verified_user</span>
+              </div>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: '0 0 0.5rem', color: 'var(--pub-on-surface)' }}>
+                100% Independent
+              </h3>
+              <p className="body" style={{ fontSize: '0.875rem', lineHeight: 1.55, color: 'var(--pub-on-variant)' }}>
+                Fixed, upfront pricing. We never take referral fees or commissions from doctors, hospitals, or medical labs.
+              </p>
+            </div>
           </div>
-        </section>
-      )}
+        </div>
+      </section>
+
+      {/* Quick Help & About Spotlight (Prominently placed on homepage) */}
+      <section className="pub-section">
+        <div className="pub-container">
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '1.5rem',
+            }}
+          >
+            {/* Quick Contact & Helpline Card */}
+            <div
+              className="pub-card"
+              style={{
+                borderRadius: '1rem',
+                padding: '2rem',
+                border: '1px solid rgba(0, 67, 73, 0.12)',
+                background: 'linear-gradient(135deg, rgba(13, 92, 99, 0.04) 0%, rgba(255, 255, 255, 0.9) 100%)',
+              }}
+            >
+              <span className="pub-eyebrow" style={{ color: 'var(--pub-primary)' }}>Need Assistance?</span>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0.25rem 0 0.5rem', color: 'var(--pub-on-surface)' }}>
+                Speak Directly with Our Care Team
+              </h3>
+              <p style={{ fontSize: '0.875rem', color: 'var(--pub-on-variant)', lineHeight: 1.5, margin: '0 0 1.25rem' }}>
+                Have questions about hospital accompaniment, custom timings, or elderly wheelchair pickup? Our counselors are available 7 days a week.
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
+                <a
+                  href="tel:180022982273"
+                  className="pub-btn"
+                  style={{ fontSize: '0.875rem', padding: '0.6rem 1.1rem' }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>call</span>
+                  <span>1800-AAYU-CARE</span>
+                </a>
+                <Link
+                  to="/contact"
+                  className="pub-btn secondary"
+                  style={{ fontSize: '0.875rem', padding: '0.6rem 1.1rem' }}
+                >
+                  <span>Visit Contact Desk</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_forward</span>
+                </Link>
+              </div>
+            </div>
+
+            {/* About Us Spotlight Card */}
+            <div
+              className="pub-card"
+              style={{
+                borderRadius: '1rem',
+                padding: '2rem',
+                border: '1px solid rgba(0, 0, 0, 0.08)',
+                background: '#ffffff',
+              }}
+            >
+              <span className="pub-eyebrow">Why We Started</span>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0.25rem 0 0.5rem', color: 'var(--pub-on-surface)' }}>
+                Gentle Support for Every Hospital Visit
+              </h3>
+              <p style={{ fontSize: '0.875rem', color: 'var(--pub-on-variant)', lineHeight: 1.5, margin: '0 0 1.25rem' }}>
+                AayuYukthi was started with a simple belief: no elder or family should navigate crowded hospital corridors in fear or loneliness.
+              </p>
+              <div>
+                <Link
+                  to="/about"
+                  className="pub-link"
+                  style={{ fontSize: '0.9375rem', fontWeight: 700 }}
+                >
+                  <span>Read Our Full Story &amp; Standards</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_forward</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* 8. FAQ */}
       {data.faqs.length > 0 && (

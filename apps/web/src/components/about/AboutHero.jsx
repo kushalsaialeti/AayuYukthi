@@ -5,42 +5,42 @@ const DEFAULT_HERO_IMG =
   'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&w=1200&q=80';
 
 export function AboutHero({ cms = {} }) {
-  const eyebrow = cms['about.hero.badge'] || 'OUR FOUNDING PURPOSE • HUMAN-CENTERED ADVOCACY';
-  const title = cms['about.hero.title'] || 'Making hospital journeys easier, dignified, and stress-free.';
+  const eyebrow = cms['about.hero.badge'] || 'ABOUT AAYUYUKTHI • CARING FOR YOUR FAMILY';
+  const title = cms['about.hero.title'] || 'Making hospital visits gentle, respectful, and stress-free.';
   const desc =
     cms['about.hero.description'] ||
-    'AayuYukthi was born from a fundamental realization: navigating premier hospitals when unwell or caring for elderly loved ones is emotionally exhausting. We bridge the gap between home doorstep and clinical care with dedicated, empathetic companions.';
+    'Going to a crowded hospital alone can be overwhelming, especially for senior citizens. AayuYukthi provides friendly, trusted care companions to walk beside your parents or family members from the hospital entrance to the doctor’s room and safely back home.';
 
-  const primaryLabel = cms['about.hero.primary_label'] || 'Book Companion Escort';
+  const primaryLabel = cms['about.hero.primary_label'] || 'Book Care Companion';
   const primaryUrl = cms['about.hero.primary_url'] || '/request-care';
   const secondaryLabel = cms['about.hero.secondary_label'] || '1800-AAYU-CARE';
   const secondaryUrl = cms['about.hero.secondary_url'] || 'tel:180022982273';
 
   const heroImg = cms['about.hero.image_url'] || DEFAULT_HERO_IMG;
-  const imageCaption = cms['about.hero.image_caption'] || 'Hyderabad, Bengaluru & Regional Corridors';
-  const imageSub = cms['about.hero.image_sub'] || 'Active at partner hospital hubs';
+  const imageCaption = cms['about.hero.image_caption'] || 'Bhimavaram & Regional Network';
+  const imageSub = cms['about.hero.image_sub'] || 'Partner hospitals active on-ground';
   const imageBadge = cms['about.hero.image_badge'] || 'Verified Team';
 
   const metrics = [
     {
-      val: cms['about.metric1.value'] || '35,000+',
-      label: cms['about.metric1.label'] || 'Assisted Hours',
-      sub: cms['about.metric1.sub'] || 'Uninterrupted bedside & corridor support',
+      val: '100%',
+      label: 'Background-Verified',
+      sub: 'Police vetted, identity-checked companions',
     },
     {
-      val: cms['about.metric2.value'] || '42+',
-      label: cms['about.metric2.label'] || 'Partner Hospital Hubs',
-      sub: cms['about.metric2.sub'] || 'Accredited private & tertiary campuses',
+      val: 'On-Time',
+      label: 'Gate Arrival',
+      sub: 'Companion waits at the entrance before you arrive',
     },
     {
-      val: cms['about.metric3.value'] || '99.2%',
-      label: cms['about.metric3.label'] || 'Punctual Escort SLA',
-      sub: cms['about.metric3.sub'] || '15-minute lobby check-in reliability',
+      val: 'Zero Lines',
+      label: 'Queue Relief',
+      sub: 'Token registration & pharmacy lines handled for you',
     },
     {
-      val: cms['about.metric4.value'] || '4.9/5',
-      label: cms['about.metric4.label'] || 'Caregiver Satisfaction',
-      sub: cms['about.metric4.sub'] || 'Verified post-consult family reviews',
+      val: 'Phone Updates',
+      label: 'Live Family Sharing',
+      sub: 'Prescription photos & doctor notes sent to your phone',
     },
   ];
 
@@ -72,14 +72,8 @@ export function AboutHero({ cms = {} }) {
               </div>
 
               <h1 className="ay-about-hero-title">
-                {title.includes('easier, dignified,') ? (
-                  <>
-                    Making hospital journeys{' '}
-                    <span className="ay-about-title-highlight">easier, dignified,</span> and stress-free.
-                  </>
-                ) : (
-                  title
-                )}
+                Making hospital visits{' '}
+                <span className="ay-about-title-highlight">gentle, respectful,</span> and stress-free.
               </h1>
 
               <p className="ay-about-hero-desc">{desc}</p>
@@ -127,7 +121,7 @@ export function AboutHero({ cms = {} }) {
             </div>
           </div>
 
-          {/* Impact Metrics Strip */}
+          {/* Impact Commitments Strip */}
           <div className="ay-about-metrics-strip">
             {metrics.map((m, idx) => (
               <div key={idx} className="ay-about-metric-card">

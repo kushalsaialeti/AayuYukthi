@@ -120,16 +120,14 @@ export function Login() {
     },
     {
       icon: cms['auth.login.feature_3']?.icon || 'folder_special',
-      title: cms['auth.login.feature_3']?.title_en || 'Encrypted Health Dossiers',
-      desc: cms['auth.login.feature_3']?.body_en || 'Instant digital access to clean discharge summaries, itemized bills, doctor prescriptions, and laboratory slips.',
+      title: cms['auth.login.feature_3']?.title_en || 'Safe Storage for Prescriptions & Bills',
+      desc: cms['auth.login.feature_3']?.body_en || 'Quick access to doctor notes, test reports, and hospital bills on your phone anytime you need them.',
     },
   ];
 
   const testimonial = {
-    rating: 5,
-    quote: cms['auth.login.testimonial_quote']?.body_en || '“Having AayuYukthi by my mother’s side at Varma Hospitals in Bhimavaram while I was away gave our family complete peace of mind. Every prescription note was shared within minutes.”',
-    author: cms['auth.login.testimonial_author']?.body_en || '— Ramesh V., Bhimavaram',
-    detail: cms['auth.login.testimonial_detail']?.body_en || 'Elder Care Service • 2025',
+    title: 'Our Family Care Guarantee',
+    quote: 'We treat your loved ones with the exact same respect, gentleness, and attentiveness as our own parents. Verified companion, on time, every single visit.',
   };
 
   const sslText = cms['auth.compliance.ssl']?.body_en || '256-bit SSL Protected';

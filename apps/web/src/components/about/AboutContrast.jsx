@@ -8,19 +8,19 @@ export function AboutContrast({ cms = {} }) {
     'See the tangible operational shift between visiting high-volume hospital facilities alone versus having an AayuYukthi companion coordinator.';
 
   const traditionalPoints = [
-    'Confusing multi-tower campus navigation leading to missed appointment slots and elevated heart rate.',
-    'Exhausting 45-60 minute physical queue standing for registration tokens, billing, and lab paperwork.',
-    'Distant family members waiting in dread across town or abroad with zero real-time visibility.',
-    'Stressful insurance pre-authorization delays, misplaced diagnostic slips, and rushed discharge instructions.',
-    'Heavy physical strain pushing wheelchairs over steep campus ramps and hailing cabs alone while unwell.',
+    'Getting lost in big, crowded hospital buildings trying to find the right room or doctor.',
+    'Standing in long, tiring lines for tokens, registration, billing, and lab tests while unwell.',
+    'Family members far away worrying and having to call repeatedly to find out what is happening.',
+    'Confusion over test papers, pharmacy counters, and complicated discharge instructions.',
+    'Struggling alone to find a wheelchair, climb steep ramps, or get a cab when feeling sick.',
   ];
 
   const supportedPoints = [
-    'Dedicated companion meets you at the arrival porch with a pre-sanitized, smooth-rolling wheelchair.',
-    'Physical queueing handled entirely by your companion while the patient rests comfortably in a quiet lounge.',
-    'Live WhatsApp & SMS milestone broadcasts: ‘Consult In-Progress’, ‘Blood Drawn’, ‘Medicines Collected’.',
-    'Coordinated TPA insurance desk submissions and neatly organized discharge dossier compilation.',
-    'Safe door-to-door transit coordination and supportive escort straight into your designated vehicle.',
+    'A kind, verified companion meets you right at the hospital gate with a wheelchair if needed.',
+    'Your companion stands in all the lines while you or your parents rest comfortably in a chair.',
+    'Instant live updates sent to your phone: "Doctor meeting started", "Tests done", "Medicines collected".',
+    'Help carrying all files, lab slips, bills, and collecting medicines from the pharmacy.',
+    'Safe escort back to your car or cab, making sure you are safely on your way home.',
   ];
 
   return (
@@ -41,8 +41,8 @@ export function AboutContrast({ cms = {} }) {
                   <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>close</span>
                 </span>
                 <div>
-                  <h3 className="ay-about-contrast-title">Traditional Hospital Experience</h3>
-                  <p className="ay-about-contrast-sub">The exhausting, unguided default</p>
+                  <h3 className="ay-about-contrast-title">Visiting Hospital Alone</h3>
+                  <p className="ay-about-contrast-sub">The stressful and exhausting way</p>
                 </div>
               </div>
 
@@ -57,7 +57,7 @@ export function AboutContrast({ cms = {} }) {
             </div>
 
             <div className="ay-about-contrast-foot negative">
-              Result: Physical exhaustion and emotional strain for both patient &amp; family.
+              Outcome: Tiredness, confusion, and high stress for both patient and family.
             </div>
           </div>
 
@@ -70,9 +70,9 @@ export function AboutContrast({ cms = {} }) {
                 </span>
                 <div>
                   <h3 className="ay-about-contrast-title" style={{ color: 'var(--pub-primary, #004349)' }}>
-                    Supported AayuYukthi Experience
+                    With an AayuYukthi Companion
                   </h3>
-                  <p className="ay-about-contrast-sub">Continuous accompaniment &amp; systematic relief</p>
+                  <p className="ay-about-contrast-sub">Personal assistance, comfort &amp; peace of mind</p>
                 </div>
               </div>
 
@@ -87,7 +87,7 @@ export function AboutContrast({ cms = {} }) {
             </div>
 
             <div className="ay-about-contrast-foot positive">
-              Result: Dignified comfort, zero administrative burden, total family calm.
+              Outcome: Dignity, rest, zero queue fatigue, and total peace of mind for loved ones.
             </div>
           </div>
         </div>

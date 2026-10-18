@@ -95,25 +95,24 @@ export function Signup() {
   const features = [
     {
       icon: cms['auth.signup.feature_1']?.icon || 'handshake',
-      title: cms['auth.signup.feature_1']?.title_en || 'Vetted Companions at Gate 1',
-      desc: cms['auth.signup.feature_1']?.body_en || 'Trained care coordinators meet parents directly at entry points with pre-arranged wheelchair transit.',
+      title: cms['auth.signup.feature_1']?.title_en || 'Meet Directly at the Hospital Gate',
+      desc: cms['auth.signup.feature_1']?.body_en || 'Your companion meets you or your parents right at the entrance with a clean wheelchair if requested.',
     },
     {
       icon: cms['auth.signup.feature_2']?.icon || 'notifications_active',
-      title: cms['auth.signup.feature_2']?.title_en || 'Live Consultation Telemetry',
-      desc: cms['auth.signup.feature_2']?.body_en || 'Direct milestone updates as doctors prescribe medication, diagnostic tests commence, and vitals register.',
+      title: cms['auth.signup.feature_2']?.title_en || 'Simple Live Updates to Your Phone',
+      desc: cms['auth.signup.feature_2']?.body_en || 'Know what is happening step-by-step: when the consultation begins, tests are submitted, and medicines collected.',
     },
     {
       icon: cms['auth.signup.feature_3']?.icon || 'family_restroom',
-      title: cms['auth.signup.feature_3']?.title_en || 'Peace Across Distances',
-      desc: cms['auth.signup.feature_3']?.body_en || 'Full digital summaries, prescription pickups, and secure escort back into safe home transportation.',
+      title: cms['auth.signup.feature_3']?.title_en || 'Total Family Relief',
+      desc: cms['auth.signup.feature_3']?.body_en || 'Prescriptions neatly organized, bills collected, and safe assistance until they are seated in their ride home.',
     },
   ];
 
   const socialProof = {
-    title: cms['auth.signup.social_proof_title']?.body_en || 'Trusted by 4,000+ Families',
-    cities: cms['auth.signup.social_proof_cities']?.body_en || 'Bhimavaram & Surrounding Regions',
-    quote: cms['auth.signup.social_proof_quote']?.body_en || '“Being away while Dad had his cardiology workups in Bhimavaram was stressful until we set up AayuYukthi. The companion was attentive, punctual, and gentle.”',
+    title: 'Need help or have questions?',
+    cities: 'Call our family care team: 1800-AAYU-CARE (Mon-Sun, 9 AM - 8 PM)',
   };
 
   return (

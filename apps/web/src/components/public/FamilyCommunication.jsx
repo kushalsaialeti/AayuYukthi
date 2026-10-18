@@ -10,18 +10,18 @@ export function FamilyCommunication({
   const defaultItems = [
     {
       icon: 'schedule',
-      title: 'Milestone Timestamps',
-      desc: 'Real-time SMS & WhatsApp alerts when the patient arrives, enters OPD consultation, and visits the pharmacy.',
+      title: 'Simple Live Updates',
+      desc: 'Clear WhatsApp or SMS messages when your loved one arrives, meets the doctor, and completes diagnostic tests.',
     },
     {
       icon: 'support_agent',
-      title: 'Direct Companion Phone Access',
-      desc: 'Call or message the assigned care companion badge holder directly during the hospital visit.',
+      title: 'Direct Phone Access to Companion',
+      desc: 'Call or message the dedicated companion badge holder directly at any moment during the hospital visit.',
     },
     {
       icon: 'description',
-      title: 'Post-Visit Care Dossier',
-      desc: 'High-resolution scan of doctor prescriptions, follow-up instructions, and pharmacy receipts sent to your phone.',
+      title: 'Prescriptions & Doctor Notes',
+      desc: 'Clear photos of doctor prescriptions, follow-up advice, and medicine bills sent straight to your phone.',
     },
   ];
 

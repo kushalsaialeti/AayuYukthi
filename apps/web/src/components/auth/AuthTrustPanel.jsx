@@ -74,47 +74,40 @@ export function AuthTrustPanel({
         )}
       </div>
 
-      {/* Editorial Testimonial Card */}
-      {testimonial && (
+      {/* Family Care Promise Card */}
+      {testimonial ? (
         <div className="ay-auth-testimonial-box">
-          <div className="ay-auth-stars" aria-label={`${testimonial.rating || 5} out of 5 stars`}>
-            {Array.from({ length: testimonial.rating || 5 }).map((_, i) => (
-              <span key={i} className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                star
-              </span>
-            ))}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--pub-secondary, #bfe9ea)', fontWeight: 600, fontSize: '13px' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>verified</span>
+            <span>{testimonial.title || 'Our Care Promise'}</span>
           </div>
-          <p className="ay-auth-quote">{testimonial.quote}</p>
-          <div className="ay-auth-quote-meta">
-            <span className="ay-auth-quote-author">{testimonial.author}</span>
-            {testimonial.detail && <span>{testimonial.detail}</span>}
-          </div>
+          <p className="ay-auth-quote" style={{ fontStyle: 'normal', fontSize: '13.5px', lineHeight: 1.5, margin: 0 }}>
+            {testimonial.quote}
+          </p>
+          {testimonial.author && (
+            <div className="ay-auth-quote-meta" style={{ marginTop: '8px' }}>
+              <span className="ay-auth-quote-author">{testimonial.author}</span>
+            </div>
+          )}
         </div>
-      )}
+      ) : null}
 
-      {/* Social Proof Metric Card */}
+      {/* Support & Helpline Pill */}
       {socialProof && (
         <div className="ay-auth-social-proof">
-          <div className="ay-auth-avatar-stack">
-            <div className="ay-auth-avatars">
-              <div className="ay-auth-avatar-chip ay-chip-1">AM</div>
-              <div className="ay-auth-avatar-chip ay-chip-2">SK</div>
-              <div className="ay-auth-avatar-chip ay-chip-3">RP</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.15)', display: 'grid', placeItems: 'center' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>support_agent</span>
             </div>
             <div>
-              <div style={{ fontSize: '14px', fontWeight: 700, lineHeight: 1.2 }}>
-                {socialProof.title || 'Trusted by 4,000+ Families'}
+              <div style={{ fontSize: '13.5px', fontWeight: 700, lineHeight: 1.2 }}>
+                {socialProof.title || 'Need assistance booking?'}
               </div>
-              <div style={{ fontSize: '11.5px', opacity: 0.85, marginTop: '2px' }}>
-                {socialProof.cities || 'Bengaluru • Hyderabad • Delhi NCR • Mumbai'}
+              <div style={{ fontSize: '12px', opacity: 0.85, marginTop: '2px' }}>
+                {socialProof.cities || 'Toll-free Family Helpline: 1800-AAYU-CARE (9 AM - 8 PM)'}
               </div>
             </div>
           </div>
-          {socialProof.quote && (
-            <p style={{ fontSize: '12.5px', fontStyle: 'italic', opacity: 0.9, marginTop: '10px', lineHeight: 1.5, marginBottom: 0 }}>
-              {socialProof.quote}
-            </p>
-          )}
         </div>
       )}
     </section>

@@ -1,77 +1,254 @@
-import { Link, NavLink } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import { LanguageSelector } from '../../i18n.jsx';
 import { track } from '../../analytics.js';
 
-// Fixed public header. Logo + nav + CTAs. All labels are UI strings (locale),
-// the brand mark comes from CMS media when provided (logoUrl prop).
 export function Header({ t, locale, setLocale, user, logoUrl }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const location = useLocation();
+
+  // Close mobile drawer whenever route changes
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
+
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [menuOpen]);
+
+  // Close on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setMenuOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
     <header className="pub-header">
       <div className="pub-container pub-header-inner">
-        <Link to="/" className="pub-brand" aria-label={t.brand}>
+        {/* Brand Logo */}
+        <Link to="/" className="pub-brand" aria-label={t.brand} onClick={() => setMenuOpen(false)}>
           {logoUrl ? (
             <img src={logoUrl} alt={`${t.brand} logo`} />
           ) : (
-            <span
-              style={{
-                width: 32, height: 32, borderRadius: 8, background: 'var(--pub-primary)',
-                color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700,
-              }}
-              aria-hidden="true"
-            >
+            <span className="pub-brand-badge" aria-hidden="true">
               A
             </span>
           )}
           <span>{t.brand}</span>
         </Link>
-        <nav className="pub-nav" aria-label="Primary">
-          <NavLink to="/" end className={({ isActive }) => (isActive ? 'active' : '')}>{t.navHome ?? 'Home'}</NavLink>
-          <NavLink to="/how-it-works" className={({ isActive }) => (isActive ? 'active' : '')}>{t.nav.how}</NavLink>
-          <NavLink to="/services" className={({ isActive }) => (isActive ? 'active' : '')}>{t.nav.services}</NavLink>
-          <NavLink to="/hospitals" className={({ isActive }) => (isActive ? 'active' : '')}>{t.nav.hospitals}</NavLink>
-          <NavLink to="/about" className={({ isActive }) => (isActive ? 'active' : '')}>{t.nav.about}</NavLink>
-          <NavLink to="/contact" className={({ isActive }) => (isActive ? 'active' : '')}>{t.nav.contact}</NavLink>
+
+        {/* Primary Desktop Nav (Focus on Care Journeys) */}
+        <nav className="pub-nav" aria-label="Primary Navigation">
+          <NavLink to="/" end className={({ isActive }) => (isActive ? 'active' : '')}>
+            {t.navHome ?? 'Home'}
+          </NavLink>
+          <NavLink to="/how-it-works" className={({ isActive }) => (isActive ? 'active' : '')}>
+            {t.nav.how}
+          </NavLink>
+          <NavLink to="/services" className={({ isActive }) => (isActive ? 'active' : '')}>
+            {t.nav.services}
+          </NavLink>
+          <NavLink to="/hospitals" className={({ isActive }) => (isActive ? 'active' : '')}>
+            {t.nav.hospitals}
+          </NavLink>
         </nav>
+
+        {/* Header Right Actions */}
         <div className="pub-header-actions">
-          <LanguageSelector locale={locale} onChange={setLocale} />
+          {/* Direct Helpline / Contact Quick Access */}
+          <Link
+            to="/contact"
+            className="pub-helpline-pill"
+            title="Helpline & Office Support"
+            onClick={() => track('CTA_CLICKED', { cta: 'header_helpline' })}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }} aria-hidden="true">
+              call
+            </span>
+            <span className="pub-helpline-text">1800-AAYU-CARE</span>
+          </Link>
+
+          {/* Language Selector (Desktop) */}
+          <div className="pub-desktop-lang">
+            <LanguageSelector locale={locale} onChange={setLocale} />
+          </div>
+
+          {/* User Auth / Dashboard Button */}
           {user ? (
             <Link
               to="/app"
+              className="pub-user-badge"
               aria-label={t.myAccount || 'Dashboard'}
               title="Return to Care Portal"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                textDecoration: 'none',
-                padding: '0.35rem 0.75rem',
-                borderRadius: '9999px',
-                backgroundColor: 'rgba(0, 104, 116, 0.08)',
-                color: 'var(--pub-primary)',
-                fontWeight: 600,
-                fontSize: '0.875rem',
-                border: '1px solid rgba(0, 104, 116, 0.2)'
-              }}
             >
-              <span
-                style={{
-                  width: 26, height: 26, borderRadius: 9999, background: 'var(--pub-primary)',
-                  color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                  fontWeight: 700, fontSize: 13,
-                }}
-              >
+              <span className="pub-user-initial" aria-hidden="true">
                 {(user.full_name ?? user.email ?? 'A').slice(0, 1).toUpperCase()}
               </span>
-              <span>Dashboard</span>
+              <span className="pub-user-label">Dashboard</span>
             </Link>
           ) : (
-            <Link className="pub-login" to="/login" onClick={() => track('CTA_CLICKED', { cta: 'login' })}>
+            <Link
+              className="pub-login"
+              to="/login"
+              onClick={() => track('CTA_CLICKED', { cta: 'login' })}
+            >
               {t.login}
             </Link>
           )}
-          <Link className="pub-btn" to="/request-care" onClick={() => track('CTA_CLICKED', { cta: 'request_care' })}>
-            {t.requestCare}
+
+          {/* Primary Request Care Button */}
+          <Link
+            className="pub-btn pub-header-cta"
+            to="/request-care"
+            onClick={() => track('CTA_CLICKED', { cta: 'request_care' })}
+          >
+            <span>{t.requestCare}</span>
           </Link>
+
+          {/* Mobile Hamburger Toggle Button */}
+          <button
+            type="button"
+            className="pub-mobile-toggle-btn"
+            aria-label={menuOpen ? 'Close Menu' : 'Open Menu'}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
+              {menuOpen ? 'close' : 'menu'}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Backdrop */}
+      {menuOpen && (
+        <div
+          className="pub-mobile-backdrop"
+          onClick={() => setMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Mobile Drawer */}
+      <div className={`pub-mobile-drawer ${menuOpen ? 'is-open' : ''}`} aria-hidden={!menuOpen}>
+        <div className="pub-mobile-drawer-inner">
+          <nav className="pub-mobile-nav" aria-label="Mobile Navigation">
+            <NavLink
+              to="/"
+              end
+              className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
+              onClick={() => setMenuOpen(false)}
+            >
+              <span className="material-symbols-outlined">home</span>
+              <span>{t.navHome ?? 'Home'}</span>
+            </NavLink>
+
+            <NavLink
+              to="/how-it-works"
+              className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
+              onClick={() => setMenuOpen(false)}
+            >
+              <span className="material-symbols-outlined">route</span>
+              <span>{t.nav.how}</span>
+            </NavLink>
+
+            <NavLink
+              to="/services"
+              className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
+              onClick={() => setMenuOpen(false)}
+            >
+              <span className="material-symbols-outlined">medical_services</span>
+              <span>{t.nav.services}</span>
+            </NavLink>
+
+            <NavLink
+              to="/hospitals"
+              className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
+              onClick={() => setMenuOpen(false)}
+            >
+              <span className="material-symbols-outlined">local_hospital</span>
+              <span>{t.nav.hospitals}</span>
+            </NavLink>
+
+            {/* About Us (Cleanly placed in mobile drawer) */}
+            <NavLink
+              to="/about"
+              className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
+              onClick={() => setMenuOpen(false)}
+            >
+              <span className="material-symbols-outlined">info</span>
+              <span>{t.nav.about}</span>
+            </NavLink>
+
+            {/* Contact & Helpline (Cleanly placed in mobile drawer) */}
+            <NavLink
+              to="/contact"
+              className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
+              onClick={() => setMenuOpen(false)}
+            >
+              <span className="material-symbols-outlined">support_agent</span>
+              <span>{t.nav.contact} &amp; Helpline</span>
+            </NavLink>
+          </nav>
+
+          {/* Mobile Language Selector & Direct Dial */}
+          <div className="pub-mobile-utility">
+            <div className="pub-mobile-lang-row">
+              <span className="pub-mobile-util-label">Language:</span>
+              <LanguageSelector locale={locale} onChange={setLocale} />
+            </div>
+
+            <a href="tel:180022982273" className="pub-mobile-call-row">
+              <span className="material-symbols-outlined">call</span>
+              <div>
+                <strong>Toll-Free Helpline</strong>
+                <span>1800-AAYU-CARE (Mon–Sat, 8am–8pm)</span>
+              </div>
+            </a>
+          </div>
+
+          {/* Mobile Footer CTAs */}
+          <div className="pub-mobile-actions">
+            {user ? (
+              <Link
+                to="/app"
+                className="pub-btn secondary"
+                style={{ width: '100%' }}
+                onClick={() => setMenuOpen(false)}
+              >
+                Go to Care Dashboard
+              </Link>
+            ) : (
+              <Link
+                to="/login"
+                className="pub-btn secondary"
+                style={{ width: '100%' }}
+                onClick={() => setMenuOpen(false)}
+              >
+                {t.login} / Register
+              </Link>
+            )}
+
+            <Link
+              to="/request-care"
+              className="pub-btn"
+              style={{ width: '100%' }}
+              onClick={() => setMenuOpen(false)}
+            >
+              {t.requestCare}
+            </Link>
+          </div>
         </div>
       </div>
     </header>

@@ -1,76 +1,64 @@
 import React from 'react';
 
 export function AboutMissionVisionValues({ cms = {} }) {
-  const missionBadge = cms['about.mission.badge'] || 'OUR MISSION';
+  const missionBadge = cms['about.mission.badge'] || 'OUR PROMISE';
   const missionTitle =
     cms['about.mission.title'] ||
-    'To eliminate logistical fear and bureaucratic anxiety from healthcare visits.';
+    'Making sure no elder or patient has to face a hospital visit alone.';
   const missionBody =
     cms['about.mission.body'] ||
-    'We ensure every patient, regardless of physical frailty or digital familiarity, has a dedicated, compassionate advocate standing by their side from the moment they step into a hospital until they are safe at home.';
+    'We ensure every person, especially elderly parents, has a caring, respectful companion standing beside them from the hospital entrance until they return home safely.';
 
-  const visionBadge = cms['about.vision.badge'] || 'OUR VISION';
+  const visionBadge = cms['about.vision.badge'] || 'OUR GOAL';
   const visionTitle =
     cms['about.vision.title'] ||
-    'A healthcare ecosystem where no patient walks a corridor lonely or confused.';
+    'A world where hospital visits are calm, respectful, and free of anxiety.';
   const visionBody =
     cms['about.vision.body'] ||
-    'We are shaping a nationwide standard where non-clinical patient navigation is recognized as an indispensable layer of humane healing—creating peace of mind for families across India and the global diaspora.';
+    'We want every family in India to have complete peace of mind, knowing their loved ones are accompanied with warmth, honesty, and continuous care.';
 
-  const valuesBadge = cms['about.values.badge'] || 'Our Guiding Ethos';
-  const valuesTitle = cms['about.values.title'] || 'Six Foundational Values';
+  const valuesBadge = cms['about.values.badge'] || 'How We Care';
+  const valuesTitle = cms['about.values.title'] || 'Our Six Core Commitments';
   const valuesSub =
     cms['about.values.sub'] ||
-    'The rigorous ethical benchmarks that direct how our companions represent and safeguard your loved ones.';
+    'The clear promises our care companions follow every single day for your family.';
 
   const valuesList = [
     {
       num: '1',
-      icon: cms['about.val1.icon'] || 'favorite',
-      title: cms['about.val1.title'] || '1. Unconditional Care',
-      desc:
-        cms['about.val1.body'] ||
-        'Empathy is present in every touchpoint—holding hands through noisy corridors, offering calm words during test delays, and treating seniors with familial reverence.',
+      icon: 'favorite',
+      title: '1. Caring Like Family',
+      desc: 'Treating your mother, father, or relatives with the same gentleness, patience, and warmth as our own family.',
     },
     {
       num: '2',
-      icon: cms['about.val2.icon'] || 'verified_user',
-      title: cms['about.val2.title'] || '2. Absolute Trust',
-      desc:
-        cms['about.val2.body'] ||
-        '100% background-verified, non-commissioned advocates. Our loyalties remain exclusively with the patient, never swayed by third-party agendas.',
+      icon: 'verified_user',
+      title: '2. 100% Honest & Verified',
+      desc: 'All companions undergo identity and police background checks. Our loyalty is strictly to you and your patient’s comfort.',
     },
     {
       num: '3',
-      icon: cms['about.val3.icon'] || 'alarm_on',
-      title: cms['about.val3.title'] || '3. Punctual Reliability',
-      desc:
-        cms['about.val3.body'] ||
-        'Strict 15-minute lobby arrival guarantee before appointment slots. We value the physical energy of tired patients and never let them wait unattended.',
+      icon: 'alarm_on',
+      title: '3. Always On Time',
+      desc: 'We arrive at the hospital gate before you do, so you or your parents never have to wait unattended.',
     },
     {
       num: '4',
-      icon: cms['about.val4.icon'] || 'accessibility_new',
-      title: cms['about.val4.title'] || '4. Dignified Respect',
-      desc:
-        cms['about.val4.body'] ||
-        'Empowering patient autonomy, preserving personal privacy during doctor examinations, and never treating elderly individuals like helpless dependents.',
+      icon: 'accessibility_new',
+      title: '4. Deep Respect for Seniors',
+      desc: 'We listen attentively, assist with clean wheelchairs, and never rush elderly patients through crowded corridors.',
     },
     {
       num: '5',
-      icon: cms['about.val5.icon'] || 'translate',
-      title: cms['about.val5.title'] || '5. Universal Accessibility',
-      desc:
-        cms['about.val5.body'] ||
-        'Native multilingual companion matching across English, Telugu, Hindi, Kannada, and Tamil to ensure total comfort without communication gaps.',
+      icon: 'translate',
+      title: '5. Speaking Your Language',
+      desc: 'Comfortable communication in Telugu, English, or Hindi so there is never any hesitation or confusion.',
     },
     {
       num: '6',
-      icon: cms['about.val6.icon'] || 'receipt_long',
-      title: cms['about.val6.title'] || '6. Strict Responsibility',
-      desc:
-        cms['about.val6.body'] ||
-        'Clear, transparent hourly pricing. Absolute zero kickbacks or referral fees from laboratories, diagnostic centres, or pharmaceutical shops.',
+      icon: 'receipt_long',
+      title: '6. Zero Commissions',
+      desc: 'Completely independent support. We never accept cuts or referral fees from doctors, clinics, or pharmacies.',
     },
   ];
 
@@ -91,7 +79,7 @@ export function AboutMissionVisionValues({ cms = {} }) {
             </div>
 
             <div className="ay-about-card-footer">
-              <span>Dignified care for every family</span>
+              <span>Warm care for your family</span>
               <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>arrow_forward</span>
             </div>
           </div>
@@ -108,20 +96,20 @@ export function AboutMissionVisionValues({ cms = {} }) {
             </div>
 
             <div className="ay-about-card-footer">
-              <span>Building nationwide healthcare dignity</span>
+              <span>Peace of mind across distances</span>
               <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>arrow_forward</span>
             </div>
           </div>
         </div>
 
-        {/* 6 Foundational Values Header */}
+        {/* 6 Commitments Header */}
         <div className="ay-about-values-header">
           <span className="ay-about-section-badge">{valuesBadge}</span>
           <h2 className="ay-about-section-h2">{valuesTitle}</h2>
           <p className="ay-about-paragraph" style={{ marginTop: '0.5rem' }}>{valuesSub}</p>
         </div>
 
-        {/* 6 Foundational Values Grid */}
+        {/* 6 Commitments Grid */}
         <div className="ay-about-values-grid">
           {valuesList.map((val, idx) => (
             <div key={idx} className="ay-about-value-card">

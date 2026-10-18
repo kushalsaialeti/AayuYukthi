@@ -4,9 +4,9 @@ import { track } from '../../analytics.js';
 import { Icon } from './Icon.jsx';
 
 export function NeedSelector({
-  eyebrow = 'Immediate Assistance',
+  eyebrow = 'How Can We Help?',
   title = 'What do you need support with?',
-  sub = 'Select your hospital visit requirement to begin personalized accompaniment coordination.',
+  sub = 'Choose what you need help with, and we will arrange a verified companion for your hospital visit.',
   services = [],
 }) {
   const navigate = useNavigate();

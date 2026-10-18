@@ -10,11 +10,11 @@ export function ContactCounselingCard({ contact, blocks }) {
     || safeContact.socials?.coordinator_image_url
     || '';
 
-  const deskBadge = safeBlocks['contact.counseling.badge']?.body_en || 'In-House Coordination Desk';
-  const deskTitle = safeBlocks['contact.counseling.title']?.body_en || 'Certified Hospital Navigators';
-  const guidanceHeading = safeBlocks['contact.counseling.heading']?.body_en || 'Human-First Healthcare Guidance';
+  const deskBadge = safeBlocks['contact.counseling.badge']?.body_en || 'Dedicated Care Team';
+  const deskTitle = safeBlocks['contact.counseling.title']?.body_en || 'Trained Hospital Companions';
+  const guidanceHeading = safeBlocks['contact.counseling.heading']?.body_en || 'Caring, Respectful Support';
   const guidanceDesc = safeBlocks['contact.counseling.desc']?.body_en
-    || 'Our care coordinators are trained in hospital administrative workflows, patient privacy, and compassionate geriatric support. No call centers — speak directly with certified care specialists.';
+    || 'Our team is trained in elder care, hospital navigation, and complete patient privacy. When you reach out, you talk directly with real, caring people who understand your family’s needs.';
 
   const defaultTrustPoints = [
     'Verified backgrounds, police vetted & hospital-badged',

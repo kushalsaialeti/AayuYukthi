@@ -429,11 +429,41 @@
   color: var(--pub-primary-container, #0d5c63);
 }
 
-.ay-about-flowchart-svg-box {
-  width: 100%;
+.ay-about-simple-steps-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.ay-about-simple-step-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
   background-color: var(--pub-surface-low, #f2f4f3);
-  padding: 1rem;
+  padding: 0.85rem 1rem;
   border-radius: 0.75rem;
+  border: 1px solid rgba(225, 227, 226, 0.6);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.ay-about-simple-step-card:hover {
+  background-color: #ffffff;
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.ay-about-step-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  background-color: var(--pub-primary-container, #0d5c63);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 800;
+  flex-shrink: 0;
 }
 
 .ay-about-cert-list {
@@ -790,59 +820,60 @@
   }
 }
 
-.ay-about-leadership-grid {
+.ay-about-standards-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 1.5rem;
 }
 
 @media (min-width: 640px) {
-  .ay-about-leadership-grid {
+  .ay-about-standards-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (min-width: 1024px) {
-  .ay-about-leadership-grid {
-    grid-template-columns: repeat(3, 1fr);
+  .ay-about-standards-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
-.ay-about-leader-card {
+.ay-about-standard-card {
   background-color: #ffffff;
-  padding: 1.25rem;
+  padding: 1.5rem;
   border-radius: 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   border: 1px solid rgba(225, 227, 226, 0.6);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.ay-about-leader-img {
-  width: 100%;
-  height: 14rem;
+.ay-about-standard-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0, 67, 73, 0.08);
+}
+
+.ay-about-standard-icon {
+  width: 3.25rem;
+  height: 3.25rem;
   border-radius: 0.75rem;
-  object-fit: cover;
-  background-color: var(--pub-surface-container, #eceeed);
+  background-color: rgba(0, 67, 73, 0.08);
+  color: var(--pub-primary, #004349);
+  display: grid;
+  place-items: center;
 }
 
-.ay-about-leader-name {
+.ay-about-standard-title {
   margin: 0;
-  font-size: 1.0625rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--pub-on-surface, #191c1c);
 }
 
-.ay-about-leader-role {
-  margin: 0.15rem 0 0;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--pub-primary-container, #0d5c63);
-}
-
-.ay-about-leader-bio {
-  margin: 0.5rem 0 0;
+.ay-about-standard-desc {
+  margin: 0;
   font-size: 0.8125rem;
   line-height: 1.55;
   color: var(--pub-on-variant, #3f484a);
