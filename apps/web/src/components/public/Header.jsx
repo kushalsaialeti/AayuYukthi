@@ -47,19 +47,33 @@ export function Header({ t, locale, setLocale, user, logoUrl }) {
   return (
     <header className="pub-header">
       <div className="pub-container pub-header-inner">
-        {/* Brand Logo */}
-        <Link to="/" className="pub-brand" aria-label={t.brand} onClick={() => setMenuOpen(false)}>
-          {logoUrl ? (
-            <img src={logoUrl} alt={`${t.brand} logo`} />
-          ) : (
-            <span className="pub-brand-badge" aria-hidden="true">
-              A
+        {/* Left Side: Traditional 3-line Hamburger Button (Mobile only) + Brand Logo */}
+        <div className="pub-header-left">
+          <button
+            type="button"
+            className="pub-mobile-toggle-btn"
+            aria-label={menuOpen ? 'Close Navigation Menu' : 'Open Navigation Menu'}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '26px' }}>
+              {menuOpen ? 'close' : 'menu'}
             </span>
-          )}
-          <span>{t.brand}</span>
-        </Link>
+          </button>
 
-        {/* Primary Desktop Nav: Always visible on Laptops and Desktops */}
+          <Link to="/" className="pub-brand" aria-label={t.brand} onClick={() => setMenuOpen(false)}>
+            {logoUrl ? (
+              <img src={logoUrl} alt={`${t.brand} logo`} />
+            ) : (
+              <span className="pub-brand-badge" aria-hidden="true">
+                A
+              </span>
+            )}
+            <span>{t.brand}</span>
+          </Link>
+        </div>
+
+        {/* Primary Desktop Nav: Core care journeys only (About & Contact moved to dedicated locations) */}
         <nav className="pub-nav" aria-label="Primary Desktop Navigation">
           <NavLink to="/" end className={({ isActive }) => (isActive ? 'active' : '')}>
             {t.navHome ?? 'Home'}
@@ -73,16 +87,23 @@ export function Header({ t, locale, setLocale, user, logoUrl }) {
           <NavLink to="/hospitals" className={({ isActive }) => (isActive ? 'active' : '')}>
             {t.nav.hospitals}
           </NavLink>
-          <NavLink to="/about" className={({ isActive }) => (isActive ? 'active' : '')}>
-            {t.nav.about}
-          </NavLink>
-          <NavLink to="/contact" className={({ isActive }) => (isActive ? 'active' : '')}>
-            {t.nav.contact}
-          </NavLink>
         </nav>
 
         {/* Header Right Actions */}
         <div className="pub-header-actions">
+          {/* Quick Help & Contact Access for Desktop */}
+          <Link
+            to="/contact"
+            className="pub-helpline-pill"
+            title="Helpline & Contact Desk"
+            onClick={() => track('CTA_CLICKED', { cta: 'header_helpline' })}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }} aria-hidden="true">
+              call
+            </span>
+            <span className="pub-helpline-text">Help &amp; Contact</span>
+          </Link>
+
           {/* Language Selector (Desktop / Laptop) */}
           <div className="pub-desktop-lang">
             <LanguageSelector locale={locale} onChange={setLocale} />
@@ -119,19 +140,6 @@ export function Header({ t, locale, setLocale, user, logoUrl }) {
           >
             <span>{t.requestCare}</span>
           </Link>
-
-          {/* Mobile Hamburger Toggle Button (Strictly Mobile Screens < 1024px) */}
-          <button
-            type="button"
-            className="pub-mobile-toggle-btn"
-            aria-label={menuOpen ? 'Close Menu' : 'Open Menu'}
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen(!menuOpen)}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
-              {menuOpen ? 'close' : 'menu'}
-            </span>
-          </button>
         </div>
       </div>
 
@@ -144,17 +152,17 @@ export function Header({ t, locale, setLocale, user, logoUrl }) {
         />
       )}
 
-      {/* Mobile Slide-Out Drawer (Strictly Mobile Screens < 1024px) */}
-      <div className={`pub-mobile-drawer ${menuOpen ? 'is-open' : ''}`} aria-hidden={!menuOpen}>
-        <div className="pub-mobile-drawer-inner">
-          <div className="pub-mobile-drawer-head">
+      {/* Traditional Left Side Mobile Sidebar (Strictly Mobile Screens < 1024px) */}
+      <aside className={`pub-mobile-sidebar ${menuOpen ? 'is-open' : ''}`} aria-hidden={!menuOpen}>
+        <div className="pub-mobile-sidebar-inner">
+          <div className="pub-mobile-sidebar-head">
             <Link to="/" className="pub-brand" onClick={() => setMenuOpen(false)}>
               {logoUrl ? <img src={logoUrl} alt={t.brand} /> : <span>{t.brand}</span>}
             </Link>
             <button
               type="button"
               className="pub-mobile-close-btn"
-              aria-label="Close menu"
+              aria-label="Close sidebar"
               onClick={() => setMenuOpen(false)}
             >
               <span className="material-symbols-outlined">close</span>
@@ -199,7 +207,7 @@ export function Header({ t, locale, setLocale, user, logoUrl }) {
               <span>{t.nav.hospitals}</span>
             </NavLink>
 
-            {/* About Us (Cleanly placed in mobile drawer) */}
+            {/* About and Contact cleanly accessible in mobile sidebar */}
             <NavLink
               to="/about"
               className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
@@ -209,7 +217,6 @@ export function Header({ t, locale, setLocale, user, logoUrl }) {
               <span>{t.nav.about}</span>
             </NavLink>
 
-            {/* Contact & Helpline (Cleanly placed in mobile drawer) */}
             <NavLink
               to="/contact"
               className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
@@ -268,7 +275,7 @@ export function Header({ t, locale, setLocale, user, logoUrl }) {
             </Link>
           </div>
         </div>
-      </div>
+      </aside>
     </header>
   );
 }
