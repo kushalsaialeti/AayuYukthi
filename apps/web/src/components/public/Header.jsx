@@ -33,6 +33,17 @@ export function Header({ t, locale, setLocale, user, logoUrl }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // Auto-close mobile drawer when window resizes to laptop/desktop width (>= 1024px)
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setMenuOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <header className="pub-header">
       <div className="pub-container pub-header-inner">
@@ -48,8 +59,8 @@ export function Header({ t, locale, setLocale, user, logoUrl }) {
           <span>{t.brand}</span>
         </Link>
 
-        {/* Primary Desktop Nav (Focus on Care Journeys) */}
-        <nav className="pub-nav" aria-label="Primary Navigation">
+        {/* Primary Desktop Nav: Always visible on Laptops and Desktops */}
+        <nav className="pub-nav" aria-label="Primary Desktop Navigation">
           <NavLink to="/" end className={({ isActive }) => (isActive ? 'active' : '')}>
             {t.navHome ?? 'Home'}
           </NavLink>
@@ -62,24 +73,17 @@ export function Header({ t, locale, setLocale, user, logoUrl }) {
           <NavLink to="/hospitals" className={({ isActive }) => (isActive ? 'active' : '')}>
             {t.nav.hospitals}
           </NavLink>
+          <NavLink to="/about" className={({ isActive }) => (isActive ? 'active' : '')}>
+            {t.nav.about}
+          </NavLink>
+          <NavLink to="/contact" className={({ isActive }) => (isActive ? 'active' : '')}>
+            {t.nav.contact}
+          </NavLink>
         </nav>
 
         {/* Header Right Actions */}
         <div className="pub-header-actions">
-          {/* Direct Helpline / Contact Quick Access */}
-          <Link
-            to="/contact"
-            className="pub-helpline-pill"
-            title="Helpline & Office Support"
-            onClick={() => track('CTA_CLICKED', { cta: 'header_helpline' })}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }} aria-hidden="true">
-              call
-            </span>
-            <span className="pub-helpline-text">1800-AAYU-CARE</span>
-          </Link>
-
-          {/* Language Selector (Desktop) */}
+          {/* Language Selector (Desktop / Laptop) */}
           <div className="pub-desktop-lang">
             <LanguageSelector locale={locale} onChange={setLocale} />
           </div>
@@ -116,7 +120,7 @@ export function Header({ t, locale, setLocale, user, logoUrl }) {
             <span>{t.requestCare}</span>
           </Link>
 
-          {/* Mobile Hamburger Toggle Button */}
+          {/* Mobile Hamburger Toggle Button (Strictly Mobile Screens < 1024px) */}
           <button
             type="button"
             className="pub-mobile-toggle-btn"
@@ -131,7 +135,7 @@ export function Header({ t, locale, setLocale, user, logoUrl }) {
         </div>
       </div>
 
-      {/* Mobile Backdrop */}
+      {/* Mobile Backdrop (Strictly Mobile Screens < 1024px) */}
       {menuOpen && (
         <div
           className="pub-mobile-backdrop"
@@ -140,9 +144,23 @@ export function Header({ t, locale, setLocale, user, logoUrl }) {
         />
       )}
 
-      {/* Mobile Drawer */}
+      {/* Mobile Slide-Out Drawer (Strictly Mobile Screens < 1024px) */}
       <div className={`pub-mobile-drawer ${menuOpen ? 'is-open' : ''}`} aria-hidden={!menuOpen}>
         <div className="pub-mobile-drawer-inner">
+          <div className="pub-mobile-drawer-head">
+            <Link to="/" className="pub-brand" onClick={() => setMenuOpen(false)}>
+              {logoUrl ? <img src={logoUrl} alt={t.brand} /> : <span>{t.brand}</span>}
+            </Link>
+            <button
+              type="button"
+              className="pub-mobile-close-btn"
+              aria-label="Close menu"
+              onClick={() => setMenuOpen(false)}
+            >
+              <span className="material-symbols-outlined">close</span>
+            </button>
+          </div>
+
           <nav className="pub-mobile-nav" aria-label="Mobile Navigation">
             <NavLink
               to="/"
