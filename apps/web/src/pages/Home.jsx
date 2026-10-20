@@ -40,7 +40,7 @@ const BLOCK_KEYS = [
 
 const textOf = (blocks, key) => blocks?.[key]?.body_en ?? blocks?.[key]?.title_en ?? null;
 
-export function Home({ t, locale }) {
+export function Home({ t, locale, setLocale, user }) {
   const [data, setData] = useState(null);
   const [services, setServices] = useState(null);
   const [hospitals, setHospitals] = useState(null);
@@ -150,6 +150,9 @@ export function Home({ t, locale }) {
         slides={data.hero}
         t={t}
         tx={tx}
+        locale={locale}
+        setLocale={setLocale}
+        user={user}
       />
 
       {/* 2. Quick Need Selector */}

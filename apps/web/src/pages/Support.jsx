@@ -159,7 +159,7 @@ export function SupportNew() {
   const [created, setCreated] = useState(null);
 
   useEffect(() => {
-    api.authedList({ limit: 20 }).then((d) => setRequests(d.data)).catch(() => {});
+    api.authedList({ limit: 20 }).then((d) => setRequests(d.data)).catch(() => { });
   }, []);
 
   const submit = async (e) => {

@@ -81,7 +81,7 @@ function Shell() {
       <div className="pub">
         <PubHeader t={t} locale={locale} setLocale={setLocale} user={user} />
         <main className="pub-main">
-          <PublicRoutes t={t} locale={locale} contact={contact} />
+          <PublicRoutes t={t} locale={locale} setLocale={setLocale} user={user} contact={contact} />
         </main>
         <PubFooter t={t} contact={contact} />
       </div>
@@ -93,10 +93,10 @@ function Shell() {
   return <AppRoutes t={t} locale={locale} contact={contact} />;
 }
 
-function PublicRoutes({ t, locale, contact }) {
+function PublicRoutes({ t, locale, setLocale, user, contact }) {
   return (
     <Routes>
-      <Route path="/" element={<Home t={t} locale={locale} />} />
+      <Route path="/" element={<Home t={t} locale={locale} setLocale={setLocale} user={user} />} />
       <Route path="/how-it-works" element={<HowItWorks t={t} />} />
       <Route path="/services" element={<Services t={t} locale={locale} />} />
       <Route path="/services/:slug" element={<ServiceDetail t={t} locale={locale} />} />

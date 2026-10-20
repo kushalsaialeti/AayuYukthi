@@ -7,22 +7,10 @@ export function Header({ t, locale, setLocale, user, logoUrl }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
 
-  // Close mobile drawer whenever route changes
+  // Close mobile menu whenever route changes
   useEffect(() => {
     setMenuOpen(false);
   }, [location.pathname]);
-
-  // Lock body scroll when mobile menu is open
-  useEffect(() => {
-    if (menuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [menuOpen]);
 
   // Close on Escape key
   useEffect(() => {
@@ -33,7 +21,7 @@ export function Header({ t, locale, setLocale, user, logoUrl }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Auto-close mobile drawer when window resizes to laptop/desktop width (>= 1024px)
+  // Auto-close mobile dropdown when window resizes to desktop width (>= 1024px)
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1024) {
@@ -47,7 +35,7 @@ export function Header({ t, locale, setLocale, user, logoUrl }) {
   return (
     <header className="pub-header">
       <div className="pub-container pub-header-inner">
-        {/* Left Side: Traditional 3-line Hamburger Button (Mobile only) + Brand Logo */}
+        {/* Left Side: 3-line Hamburger Button (Mobile only) + Brand Logo */}
         <div className="pub-header-left">
           <button
             type="button"
@@ -73,7 +61,7 @@ export function Header({ t, locale, setLocale, user, logoUrl }) {
           </Link>
         </div>
 
-        {/* Primary Desktop Nav: Core care journeys only (About & Contact moved to dedicated locations) */}
+        {/* Primary Desktop Nav: Core care journeys */}
         <nav className="pub-nav" aria-label="Primary Desktop Navigation">
           <NavLink to="/" end className={({ isActive }) => (isActive ? 'active' : '')}>
             {t.navHome ?? 'Home'}
@@ -86,6 +74,9 @@ export function Header({ t, locale, setLocale, user, logoUrl }) {
           </NavLink>
           <NavLink to="/hospitals" className={({ isActive }) => (isActive ? 'active' : '')}>
             {t.nav.hospitals}
+          </NavLink>
+          <NavLink to="/about" className={({ isActive }) => (isActive ? 'active' : '')}>
+            {t.nav.about}
           </NavLink>
         </nav>
 
@@ -132,7 +123,7 @@ export function Header({ t, locale, setLocale, user, logoUrl }) {
             </Link>
           )}
 
-          {/* Primary Request Care Button */}
+          {/* Primary Request Care Button with vibrant gradient */}
           <Link
             className="pub-btn pub-header-cta"
             to="/request-care"
@@ -143,139 +134,107 @@ export function Header({ t, locale, setLocale, user, logoUrl }) {
         </div>
       </div>
 
-      {/* Mobile Backdrop (Strictly Mobile Screens < 1024px) */}
+      {/* Redesigned Mobile Dropdown: Zero separate scrolling, flows with header */}
       {menuOpen && (
-        <div
-          className="pub-mobile-backdrop"
-          onClick={() => setMenuOpen(false)}
-          aria-hidden="true"
-        />
-      )}
+        <div className="pub-header-mobile-dropdown" role="dialog" aria-modal="true">
+          <div className="pub-container pub-mobile-dropdown-inner">
+            <nav className="pub-mobile-nav" aria-label="Mobile Navigation">
+              <NavLink
+                to="/"
+                end
+                className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
+                onClick={() => setMenuOpen(false)}
+              >
+                <span className="material-symbols-outlined">home</span>
+                <span>{t.navHome ?? 'Home'}</span>
+              </NavLink>
 
-      {/* Traditional Left Side Mobile Sidebar (Strictly Mobile Screens < 1024px) */}
-      <aside className={`pub-mobile-sidebar ${menuOpen ? 'is-open' : ''}`} aria-hidden={!menuOpen}>
-        <div className="pub-mobile-sidebar-inner">
-          <div className="pub-mobile-sidebar-head">
-            <Link to="/" className="pub-brand" onClick={() => setMenuOpen(false)}>
-              {logoUrl ? <img src={logoUrl} alt={t.brand} /> : <span>{t.brand}</span>}
-            </Link>
-            <button
-              type="button"
-              className="pub-mobile-close-btn"
-              aria-label="Close sidebar"
-              onClick={() => setMenuOpen(false)}
-            >
-              <span className="material-symbols-outlined">close</span>
-            </button>
-          </div>
+              <NavLink
+                to="/services"
+                className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
+                onClick={() => setMenuOpen(false)}
+              >
+                <span className="material-symbols-outlined">medical_services</span>
+                <span>{t.nav.services}</span>
+              </NavLink>
 
-          <nav className="pub-mobile-nav" aria-label="Mobile Navigation">
-            <NavLink
-              to="/"
-              end
-              className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
-              onClick={() => setMenuOpen(false)}
-            >
-              <span className="material-symbols-outlined">home</span>
-              <span>{t.navHome ?? 'Home'}</span>
-            </NavLink>
+              <NavLink
+                to="/hospitals"
+                className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
+                onClick={() => setMenuOpen(false)}
+              >
+                <span className="material-symbols-outlined">local_hospital</span>
+                <span>{t.nav.hospitals}</span>
+              </NavLink>
 
-            <NavLink
-              to="/how-it-works"
-              className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
-              onClick={() => setMenuOpen(false)}
-            >
-              <span className="material-symbols-outlined">route</span>
-              <span>{t.nav.how}</span>
-            </NavLink>
+              <NavLink
+                to="/how-it-works"
+                className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
+                onClick={() => setMenuOpen(false)}
+              >
+                <span className="material-symbols-outlined">route</span>
+                <span>{t.nav.how}</span>
+              </NavLink>
 
-            <NavLink
-              to="/services"
-              className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
-              onClick={() => setMenuOpen(false)}
-            >
-              <span className="material-symbols-outlined">medical_services</span>
-              <span>{t.nav.services}</span>
-            </NavLink>
+              <NavLink
+                to="/about"
+                className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
+                onClick={() => setMenuOpen(false)}
+              >
+                <span className="material-symbols-outlined">info</span>
+                <span>{t.nav.about}</span>
+              </NavLink>
 
-            <NavLink
-              to="/hospitals"
-              className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
-              onClick={() => setMenuOpen(false)}
-            >
-              <span className="material-symbols-outlined">local_hospital</span>
-              <span>{t.nav.hospitals}</span>
-            </NavLink>
+              <NavLink
+                to="/contact"
+                className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
+                onClick={() => setMenuOpen(false)}
+              >
+                <span className="material-symbols-outlined">support_agent</span>
+                <span>{t.nav.contact} &amp; Helpline</span>
+              </NavLink>
+            </nav>
 
-            {/* About and Contact cleanly accessible in mobile sidebar */}
-            <NavLink
-              to="/about"
-              className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
-              onClick={() => setMenuOpen(false)}
-            >
-              <span className="material-symbols-outlined">info</span>
-              <span>{t.nav.about}</span>
-            </NavLink>
+            <div className="pub-mobile-footer-actions">
+              <Link
+                to="/request-care"
+                className="pub-btn pub-header-cta"
+                style={{ width: '100%', justifyContent: 'center' }}
+                onClick={() => setMenuOpen(false)}
+              >
+                <span>{t.requestCare}</span>
+                <span className="material-symbols-outlined">arrow_forward</span>
+              </Link>
 
-            <NavLink
-              to="/contact"
-              className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
-              onClick={() => setMenuOpen(false)}
-            >
-              <span className="material-symbols-outlined">support_agent</span>
-              <span>{t.nav.contact} &amp; Helpline</span>
-            </NavLink>
-          </nav>
+              <div className="pub-mobile-sub-actions">
+                {user ? (
+                  <Link
+                    to="/app"
+                    className="pub-mobile-sub-link"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <span className="material-symbols-outlined">account_circle</span>
+                    <span>Dashboard</span>
+                  </Link>
+                ) : (
+                  <Link
+                    to="/login"
+                    className="pub-mobile-sub-link"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <span className="material-symbols-outlined">login</span>
+                    <span>{t.login}</span>
+                  </Link>
+                )}
 
-          {/* Mobile Language Selector & Direct Dial */}
-          <div className="pub-mobile-utility">
-            <div className="pub-mobile-lang-row">
-              <span className="pub-mobile-util-label">Language:</span>
-              <LanguageSelector locale={locale} onChange={setLocale} />
-            </div>
-
-            <a href="tel:180022982273" className="pub-mobile-call-row">
-              <span className="material-symbols-outlined">call</span>
-              <div>
-                <strong>Toll-Free Helpline</strong>
-                <span>1800-AAYU-CARE (Mon–Sat, 8am–8pm)</span>
+                <div className="pub-mobile-lang-wrap">
+                  <LanguageSelector locale={locale} onChange={setLocale} />
+                </div>
               </div>
-            </a>
-          </div>
-
-          {/* Mobile Footer CTAs */}
-          <div className="pub-mobile-actions">
-            {user ? (
-              <Link
-                to="/app"
-                className="pub-btn secondary"
-                style={{ width: '100%' }}
-                onClick={() => setMenuOpen(false)}
-              >
-                Go to Care Dashboard
-              </Link>
-            ) : (
-              <Link
-                to="/login"
-                className="pub-btn secondary"
-                style={{ width: '100%' }}
-                onClick={() => setMenuOpen(false)}
-              >
-                {t.login} / Register
-              </Link>
-            )}
-
-            <Link
-              to="/request-care"
-              className="pub-btn"
-              style={{ width: '100%' }}
-              onClick={() => setMenuOpen(false)}
-            >
-              {t.requestCare}
-            </Link>
+            </div>
           </div>
         </div>
-      </aside>
+      )}
     </header>
   );
 }
