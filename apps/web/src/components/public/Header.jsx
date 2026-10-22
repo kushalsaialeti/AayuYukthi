@@ -3,9 +3,31 @@ import { Link, NavLink, useLocation } from 'react-router-dom';
 import { LanguageSelector } from '../../i18n.jsx';
 import { track } from '../../analytics.js';
 
+/**
+ * Resizable Navbar (inspired by Aceternity UI Resizable Navbar)
+ * - Dynamically changes its width and morphs smoothly on scroll (wide pill -> compact floating pill)
+ * - Glassmorphism backdrop-blur, subtle elevation, responsive design
+ * - Smooth mobile dropdown with zero separate scroll container
+ */
 export function Header({ t, locale, setLocale, user, logoUrl }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
+
+  // Scroll listener for dynamic resizing on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 40) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Close mobile menu whenever route changes
   useEffect(() => {
@@ -33,10 +55,13 @@ export function Header({ t, locale, setLocale, user, logoUrl }) {
   }, []);
 
   return (
-    <header className="pub-header">
-      <div className="pub-container pub-header-inner">
-        {/* Left Side: 3-line Hamburger Button (Mobile only) + Brand Logo */}
-        <div className="pub-header-left">
+    <header
+      className={`pub-resizable-navbar-wrapper ${isScrolled ? 'is-scrolled' : ''}`}
+      aria-label="Main Navigation Bar"
+    >
+      <div className="pub-resizable-nav-body">
+        {/* Brand Logo & Mobile Toggle */}
+        <div className="pub-nav-left">
           <button
             type="button"
             className="pub-mobile-toggle-btn"
@@ -44,7 +69,7 @@ export function Header({ t, locale, setLocale, user, logoUrl }) {
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen(!menuOpen)}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '26px' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
               {menuOpen ? 'close' : 'menu'}
             </span>
           </button>
@@ -57,7 +82,7 @@ export function Header({ t, locale, setLocale, user, logoUrl }) {
                 A
               </span>
             )}
-            <span>{t.brand}</span>
+            <span className="pub-brand-name">{t.brand}</span>
           </Link>
         </div>
 
@@ -65,9 +90,6 @@ export function Header({ t, locale, setLocale, user, logoUrl }) {
         <nav className="pub-nav" aria-label="Primary Desktop Navigation">
           <NavLink to="/" end className={({ isActive }) => (isActive ? 'active' : '')}>
             {t.navHome ?? 'Home'}
-          </NavLink>
-          <NavLink to="/how-it-works" className={({ isActive }) => (isActive ? 'active' : '')}>
-            {t.nav.how}
           </NavLink>
           <NavLink to="/services" className={({ isActive }) => (isActive ? 'active' : '')}>
             {t.nav.services}
@@ -82,19 +104,6 @@ export function Header({ t, locale, setLocale, user, logoUrl }) {
 
         {/* Header Right Actions */}
         <div className="pub-header-actions">
-          {/* Quick Help & Contact Access for Desktop */}
-          <Link
-            to="/contact"
-            className="pub-helpline-pill"
-            title="Helpline & Contact Desk"
-            onClick={() => track('CTA_CLICKED', { cta: 'header_helpline' })}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }} aria-hidden="true">
-              call
-            </span>
-            <span className="pub-helpline-text">Help &amp; Contact</span>
-          </Link>
-
           {/* Language Selector (Desktop / Laptop) */}
           <div className="pub-desktop-lang">
             <LanguageSelector locale={locale} onChange={setLocale} />
@@ -132,109 +141,109 @@ export function Header({ t, locale, setLocale, user, logoUrl }) {
             <span>{t.requestCare}</span>
           </Link>
         </div>
-      </div>
 
-      {/* Redesigned Mobile Dropdown: Zero separate scrolling, flows with header */}
-      {menuOpen && (
-        <div className="pub-header-mobile-dropdown" role="dialog" aria-modal="true">
-          <div className="pub-container pub-mobile-dropdown-inner">
-            <nav className="pub-mobile-nav" aria-label="Mobile Navigation">
-              <NavLink
-                to="/"
-                end
-                className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
-                onClick={() => setMenuOpen(false)}
-              >
-                <span className="material-symbols-outlined">home</span>
-                <span>{t.navHome ?? 'Home'}</span>
-              </NavLink>
+        {/* Redesigned Floating Mobile Dropdown: Zero separate scrolling */}
+        {menuOpen && (
+          <div className="pub-resizable-mobile-dropdown" role="dialog" aria-modal="true">
+            <div className="pub-mobile-dropdown-inner">
+              <nav className="pub-mobile-nav" aria-label="Mobile Navigation">
+                <NavLink
+                  to="/"
+                  end
+                  className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <span className="material-symbols-outlined">home</span>
+                  <span>{t.navHome ?? 'Home'}</span>
+                </NavLink>
 
-              <NavLink
-                to="/services"
-                className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
-                onClick={() => setMenuOpen(false)}
-              >
-                <span className="material-symbols-outlined">medical_services</span>
-                <span>{t.nav.services}</span>
-              </NavLink>
+                <NavLink
+                  to="/services"
+                  className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <span className="material-symbols-outlined">medical_services</span>
+                  <span>{t.nav.services}</span>
+                </NavLink>
 
-              <NavLink
-                to="/hospitals"
-                className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
-                onClick={() => setMenuOpen(false)}
-              >
-                <span className="material-symbols-outlined">local_hospital</span>
-                <span>{t.nav.hospitals}</span>
-              </NavLink>
+                <NavLink
+                  to="/hospitals"
+                  className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <span className="material-symbols-outlined">local_hospital</span>
+                  <span>{t.nav.hospitals}</span>
+                </NavLink>
 
-              <NavLink
-                to="/how-it-works"
-                className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
-                onClick={() => setMenuOpen(false)}
-              >
-                <span className="material-symbols-outlined">route</span>
-                <span>{t.nav.how}</span>
-              </NavLink>
+                <NavLink
+                  to="/how-it-works"
+                  className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <span className="material-symbols-outlined">route</span>
+                  <span>{t.nav.how}</span>
+                </NavLink>
 
-              <NavLink
-                to="/about"
-                className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
-                onClick={() => setMenuOpen(false)}
-              >
-                <span className="material-symbols-outlined">info</span>
-                <span>{t.nav.about}</span>
-              </NavLink>
+                <NavLink
+                  to="/about"
+                  className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <span className="material-symbols-outlined">info</span>
+                  <span>{t.nav.about}</span>
+                </NavLink>
 
-              <NavLink
-                to="/contact"
-                className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
-                onClick={() => setMenuOpen(false)}
-              >
-                <span className="material-symbols-outlined">support_agent</span>
-                <span>{t.nav.contact} &amp; Helpline</span>
-              </NavLink>
-            </nav>
+                <NavLink
+                  to="/contact"
+                  className={({ isActive }) => `pub-mobile-nav-link ${isActive ? 'active' : ''}`}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <span className="material-symbols-outlined">support_agent</span>
+                  <span>{t.nav.contact} &amp; Helpline</span>
+                </NavLink>
+              </nav>
 
-            <div className="pub-mobile-footer-actions">
-              <Link
-                to="/request-care"
-                className="pub-btn pub-header-cta"
-                style={{ width: '100%', justifyContent: 'center' }}
-                onClick={() => setMenuOpen(false)}
-              >
-                <span>{t.requestCare}</span>
-                <span className="material-symbols-outlined">arrow_forward</span>
-              </Link>
+              <div className="pub-mobile-footer-actions">
+                <Link
+                  to="/request-care"
+                  className="pub-btn pub-header-cta"
+                  style={{ width: '100%', justifyContent: 'center' }}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <span>{t.requestCare}</span>
+                  <span className="material-symbols-outlined">arrow_forward</span>
+                </Link>
 
-              <div className="pub-mobile-sub-actions">
-                {user ? (
-                  <Link
-                    to="/app"
-                    className="pub-mobile-sub-link"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    <span className="material-symbols-outlined">account_circle</span>
-                    <span>Dashboard</span>
-                  </Link>
-                ) : (
-                  <Link
-                    to="/login"
-                    className="pub-mobile-sub-link"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    <span className="material-symbols-outlined">login</span>
-                    <span>{t.login}</span>
-                  </Link>
-                )}
+                <div className="pub-mobile-sub-actions">
+                  {user ? (
+                    <Link
+                      to="/app"
+                      className="pub-mobile-sub-link"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      <span className="material-symbols-outlined">account_circle</span>
+                      <span>Dashboard</span>
+                    </Link>
+                  ) : (
+                    <Link
+                      to="/login"
+                      className="pub-mobile-sub-link"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      <span className="material-symbols-outlined">login</span>
+                      <span>{t.login}</span>
+                    </Link>
+                  )}
 
-                <div className="pub-mobile-lang-wrap">
-                  <LanguageSelector locale={locale} onChange={setLocale} />
+                  <div className="pub-mobile-lang-wrap">
+                    <LanguageSelector locale={locale} onChange={setLocale} />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </header>
   );
 }

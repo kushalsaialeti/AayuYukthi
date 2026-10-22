@@ -114,23 +114,17 @@ const STRINGS = {
   },
 };
 
-export function LanguageSelector({ locale, onChange }) {
+export function LanguageSelector({ locale, onChange, className = '' }) {
   return (
-    <label style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
-      <span className="badge" style={{ background: 'var(--color-primary-tint)', color: 'var(--color-primary-dark)' }}>
-        {locale === 'te' ? 'తెలుగు' : 'EN'}
-      </span>
-      <select
-        className="select"
-        style={{ width: 'auto' }}
-        aria-label="Language"
-        value={locale}
-        onChange={(e) => onChange(e.target.value)}
-      >
-        <option value="en">English</option>
-        <option value="te">తెలుగు</option>
-      </select>
-    </label>
+    <select
+      className={`pub-lang-select select ${className}`.trim()}
+      aria-label="Language"
+      value={locale}
+      onChange={(e) => onChange(e.target.value)}
+    >
+      <option value="en">English</option>
+      <option value="te">తెలుగు</option>
+    </select>
   );
 }
 
