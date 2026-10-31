@@ -1,28 +1,33 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-export function AuthFooter({ helplineNumber = '1800-AAYU-CARE', helplineTel = 'tel:180022982273' }) {
+export function AuthFooter({ helplineNumber = '', helplineTel = '' }) {
   const currentYear = new Date().getFullYear();
+  const showHelpline = Boolean(helplineNumber && helplineTel);
 
   return (
     <footer className="ay-auth-footer">
       <div className="ay-auth-footer-inner">
         <div className="ay-auth-footer-left">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span className="material-symbols-outlined text-[18px]" style={{ color: 'var(--ay-auth-primary)' }}>
-              support_agent
-            </span>
-            <span style={{ fontWeight: 600 }}>24/7 Care Helpline:</span>
-            <a href={helplineTel} className="ay-auth-helpline-link">
-              {helplineNumber}
-            </a>
-          </div>
-          <span style={{ opacity: 0.5 }}>•</span>
+          {showHelpline && (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span className="material-symbols-outlined text-[18px]" style={{ color: 'var(--ay-auth-primary)' }}>
+                  support_agent
+                </span>
+                <span style={{ fontWeight: 600 }}>Care Helpline:</span>
+                <a href={helplineTel} className="ay-auth-helpline-link">
+                  {helplineNumber}
+                </a>
+              </div>
+              <span style={{ opacity: 0.5 }}>•</span>
+            </>
+          )}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span className="material-symbols-outlined text-[15px]" style={{ color: 'var(--ay-auth-secondary)' }}>
               lock
             </span>
-            <span>End-to-End Encrypted Healthcare Session</span>
+            <span>Connections encrypted in transit (HTTPS)</span>
           </div>
         </div>
 

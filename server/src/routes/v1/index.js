@@ -17,7 +17,8 @@ import { createTranslationRouter } from '../../modules/translation/routes.js';
 import { createAnalyticsCaptureRouter } from '../../modules/analytics/capture.js';
 import { createOpsAnalyticsRouter } from '../../modules/analytics/opsRoutes.js';
 import { createAuditRouter } from '../../modules/audit/routes.js';
-import { requireAuth } from '../../middleware/auth.js';
+import { createSecurityOpsRouter } from '../../security/routes.js';
+import { requireAuth, requireRole } from '../../middleware/auth.js';
 import { httpError } from '../../middleware/errorHandler.js';
 
 // Analytics viewers are read-only across operations: they may GET but never
@@ -58,15 +59,21 @@ export function createV1Router(db = defaultDb) {
   // Operations CMS
   v1.use('/ops/auth', createOpsAuthRouter(db));
   v1.use('/ops', requireAuth, viewerReadOnly);
+  // Content surfaces: any ops role may read; viewerReadOnly keeps
+  // analytics_viewer read-only.
   v1.use('/ops/services', createServicesOpsRouter(db));
   v1.use('/ops/hospitals', createHospitalsOpsRouter(db));
   v1.use('/ops/cms', createContentOpsRouter(db));
-  v1.use('/ops/requests', createOpsRequestsRouter(db));
-  v1.use('/ops/customers', createOpsCustomersRouter(db));
-  v1.use('/ops/support', createOpsSupportRouter(db));
+  v1.use('/ops/media', createMediaOpsRouter(db));
+  // Care operations + customer PII: head/staff ONLY — content_manager and
+  // analytics_viewer have no business reading customer records or mutating
+  // requests/tickets (least-privilege tightening from the backend audit).
+  v1.use('/ops/requests', requireRole('operations_head', 'operations_staff'), createOpsRequestsRouter(db));
+  v1.use('/ops/customers', requireRole('operations_head', 'operations_staff'), createOpsCustomersRouter(db));
+  v1.use('/ops/support', requireRole('operations_head', 'operations_staff'), createOpsSupportRouter(db));
   v1.use('/ops/analytics', createOpsAnalyticsRouter(db));
   v1.use('/ops/audit-logs', createAuditRouter(db));
-  v1.use('/ops/media', createMediaOpsRouter(db));
+  v1.use('/ops/security', createSecurityOpsRouter(db));
 
   return v1;
 }

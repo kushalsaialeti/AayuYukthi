@@ -27,10 +27,10 @@ export const DEFAULT_STAGES = [
     shortLabel: 'Pickup',
     simpleTitle: 'Step 2: Caretaker & Doorstep Pickup',
     point1Icon: 'person_pin',
-    point1Title: 'Caretaker assigned 1 hour before',
-    point1Desc: "You get the caretaker's photo, name, and phone number in advance.",
+    point1Title: 'Caretaker details shared in advance',
+    point1Desc: "You get the caretaker's photo, name, and phone number before the visit.",
     point2Icon: 'directions_car',
-    point2Title: 'Doorstep pickup on time',
+    point2Title: 'Doorstep pickup',
     point2Desc: 'A clean car arrives at your home to pick you up safely.',
     ctaText: 'Schedule Pickup',
     ctaUrl: '/request-care',
@@ -46,8 +46,8 @@ export const DEFAULT_STAGES = [
     point1Title: 'Full help inside the hospital',
     point1Desc: 'Your caretaker stays by your side through lines, tests, and doctor visits.',
     point2Icon: 'schedule',
-    point2Title: 'Updates every 30 minutes',
-    point2Desc: 'Family gets peace of mind with live messages on WhatsApp every half hour.',
+    point2Title: 'Regular updates during the visit',
+    point2Desc: 'Family gets peace of mind with live WhatsApp messages during the hospital visit.',
     ctaText: 'See Hospital Support',
     ctaUrl: '/services',
     secondaryCtaText: 'Partner Hospitals',
@@ -88,7 +88,7 @@ export const DEFAULT_STAGES = [
   },
 ];
 
-const AUTOPLAY_INTERVAL = 3300; // 3.3 seconds continuous smooth transition
+const AUTOPLAY_INTERVAL = 3300; // autoplay interval in ms between slides
 
 export function HeroJourney({ copy = {}, slides = [], t = {}, tx }) {
   // Use up to 5 slides from CMS, or fallback stages

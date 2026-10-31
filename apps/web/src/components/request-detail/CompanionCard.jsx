@@ -42,7 +42,7 @@ export function CompanionCard({
         </div>
 
         <p style={{ margin: 0, fontSize: '0.8125rem', color: 'var(--cust-on-surface-variant)', lineHeight: 1.5 }}>
-          Our hospital operations desk is assigning a verified BLS-trained companion matched to the patient's mobility directives.
+          Our hospital operations desk is assigning a companion matched to the patient's mobility directives.
         </p>
 
         {phone && (
@@ -109,7 +109,7 @@ export function CompanionCard({
               <span
                 className="material-symbols-outlined"
                 style={{ fontSize: '18px', color: 'var(--cust-primary)' }}
-                title="Accredited Caregiver"
+                title="Care Companion"
               >
                 verified
               </span>
@@ -154,10 +154,10 @@ export function CompanionCard({
         </span>
         <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.3 }}>
           <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--cust-primary)' }}>
-            Verified Escort Companion
+            Escort Companion
           </span>
           <span style={{ fontSize: '0.75rem', color: 'var(--cust-on-surface-variant)' }}>
-            Active on ground with patient
+            On ground with patient
           </span>
         </div>
       </div>

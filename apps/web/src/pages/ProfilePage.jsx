@@ -18,9 +18,29 @@ export function ProfilePage() {
   const [requestsCount, setRequestsCount] = useState(0);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState(null);
+  const [publicId, setPublicId] = useState(user?.public_id || '');
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     let active = true;
+
+    // Fresh account payload — guarantees a current portal-wide public_id even
+    // when the cached localStorage user was written before the field existed.
+    api.me()
+      .then((me) => {
+        if (!active || !me) return;
+        setUser(me);
+        setPublicId(me.public_id || '');
+        try {
+          sessionStorage.setItem('ay-user', JSON.stringify(me));
+          if (tokenStore.isRemembered && tokenStore.isRemembered()) {
+            localStorage.setItem('ay-user', JSON.stringify(me));
+          }
+        } catch {
+          /* storage in private browsing */
+        }
+      })
+      .catch(() => {});
 
     // Load active care recipients
     api.recipients({ limit: 10 })
@@ -45,12 +65,18 @@ export function ProfilePage() {
     };
   }, []);
 
+  // Pick up public_id if it arrives via the auth context after mount.
+  useEffect(() => {
+    if (!publicId && user?.public_id) setPublicId(user.public_id);
+  }, [user, publicId]);
+
   const handleSaveProfile = async (patchData) => {
     setBusy(true);
     setStatus(null);
     try {
       const updated = await api.updateMe(patchData);
       setUser(updated);
+      if (updated?.public_id) setPublicId(updated.public_id);
       try {
         sessionStorage.setItem('ay-user', JSON.stringify(updated));
         if (tokenStore.isRemembered && tokenStore.isRemembered()) {
@@ -71,6 +97,38 @@ export function ProfilePage() {
   const scrollToPersonalForm = () => {
     const el = document.getElementById('section-personal');
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+
+  const copyPublicId = async () => {
+    if (!publicId) return;
+    const done = () => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    };
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(publicId);
+        done();
+        return;
+      }
+      throw new Error('clipboard unavailable');
+    } catch {
+      // Fallback for browsers/contexts without the async clipboard API
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = publicId;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        if (ok) done();
+      } catch {
+        /* copy not permitted — the ID stays visible on screen */
+      }
+    }
   };
 
   return (
@@ -94,6 +152,31 @@ export function ProfilePage() {
           </p>
         </div>
       </div>
+
+      {/* Portal-wide unique account ID */}
+      {publicId && (
+        <div className="cust-id-block">
+          <div className="cust-id-block-text">
+            <span className="cust-id-label">Your AayuYukthi ID</span>
+            <span className="cust-id-value">{publicId}</span>
+            <p className="cust-id-help">
+              This unique ID identifies you across every request, recipient, and support thread in
+              your portal. Quote it when you contact us.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="cust-id-copy"
+            onClick={copyPublicId}
+            aria-label={`Copy your AayuYukthi ID ${publicId}`}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+              {copied ? 'check' : 'content_copy'}
+            </span>
+            <span>{copied ? 'Copied!' : 'Copy ID'}</span>
+          </button>
+        </div>
+      )}
 
       {/* Profile Header Card */}
       <ProfileHeaderCard

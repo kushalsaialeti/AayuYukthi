@@ -123,7 +123,7 @@ describe('hospitals CMS vertical slice', () => {
 });
 
 describe('content CMS vertical slice', () => {
-  it('publishes FAQ + hero and serves the home bundle', async () => {
+  it('publishes FAQ + hero and serves them via separate public endpoints', async () => {
     const faq = await auth(request(app).post('/api/v1/ops/cms/faqs')).send({
       question_en: 'What does AayuYukthi do?', answer_en: 'Care coordination.', is_published: true,
     });
@@ -134,9 +134,18 @@ describe('content CMS vertical slice', () => {
     });
     expect(hero.status).toBe(201);
 
-    const home = await request(app).get('/api/v1/content/home');
-    expect(home.body.data.faqs.length).toBeGreaterThanOrEqual(1);
-    expect(home.body.data.hero.length).toBeGreaterThanOrEqual(1);
+    // Granular: each resource has its own endpoint; no mega-bundle.
+    const faqs = await request(app).get('/api/v1/content/faqs');
+    expect(faqs.body.data.length).toBeGreaterThanOrEqual(1);
+
+    const slides = await request(app).get('/api/v1/content/hero-slides');
+    expect(slides.body.data.length).toBeGreaterThanOrEqual(1);
+
+    const testimonials = await request(app).get('/api/v1/content/testimonials');
+    expect(Array.isArray(testimonials.body.data)).toBe(true);
+
+    const gone = await request(app).get('/api/v1/content/home');
+    expect(gone.status).toBe(404);
   });
 
   it('updates contact settings and serves them publicly', async () => {

@@ -15,6 +15,17 @@ const TRANSLATABLE = {
 
 const SUPPORTED_LOCALES = ['te'];
 
+// Publication predicates per table — anonymous callers may only translate
+// what the public site can already see (no draft/archived master leaks).
+const PUBLISHED_FILTER = {
+  services: "status = 'published'",
+  hospitals: "status = 'published'",
+  hero_slides: 'is_active = true',
+  faqs: 'is_published = true',
+  testimonials: 'is_published = true',
+  content_blocks: "status = 'published'",
+};
+
 export const translateBatchSchema = z.object({
   target_locale: z.enum(SUPPORTED_LOCALES),
   items: z.array(z.object({
@@ -30,7 +41,7 @@ export function isTranslatable(entityType, field) {
 
 // Returns { text, cached } — throws 404 for unknown rows, 503 when the
 // provider fails (callers fall back to English).
-export async function translateField(db, { entityType, entityId, field, targetLocale, sourceText: provided }) {
+export async function translateField(db, { entityType, entityId, field, targetLocale, sourceText: provided, publishedOnly = false }) {
   if (!SUPPORTED_LOCALES.includes(targetLocale)) throw httpError(400, 'UNSUPPORTED_LOCALE', 'This language is not supported yet');
   if (!isTranslatable(entityType, field)) throw httpError(400, 'NOT_TRANSLATABLE', 'This content cannot be translated');
 
@@ -38,9 +49,10 @@ export async function translateField(db, { entityType, entityId, field, targetLo
   if (sourceText == null) {
     const table = entityType;
     const idCol = table === 'content_blocks' ? 'key' : 'id';
+    const filter = publishedOnly && PUBLISHED_FILTER[table] ? ` AND ${PUBLISHED_FILTER[table]}` : '';
     let rows;
     try {
-      ({ rows } = await db.query(`SELECT ${field} AS text FROM ${table} WHERE ${idCol} = $1 LIMIT 1`, [entityId]));
+      ({ rows } = await db.query(`SELECT ${field} AS text FROM ${table} WHERE ${idCol} = $1${filter} LIMIT 1`, [entityId]));
     } catch {
       throw httpError(400, 'NOT_TRANSLATABLE', 'This content cannot be translated');
     }
@@ -74,7 +86,7 @@ export async function translateField(db, { entityType, entityId, field, targetLo
   return { text: result.text, cached: false };
 }
 
-export async function translateBatch(db, { target_locale, targetLocale, items }) {
+export async function translateBatch(db, { target_locale, targetLocale, items }, { allowUnpublished = false } = {}) {
   const locale = targetLocale ?? target_locale;
   const out = [];
   for (const item of items) {
@@ -84,6 +96,7 @@ export async function translateBatch(db, { target_locale, targetLocale, items })
         entityId: item.entity_id ?? item.entityId,
         field: item.field,
         targetLocale: locale,
+        publishedOnly: !allowUnpublished,
       });
       out.push({ ...item, text: r.text, cached: r.cached });
     } catch (err) {

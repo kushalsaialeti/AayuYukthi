@@ -10,13 +10,14 @@ import { optimizeImageToWebP, resolveGoogleDriveUrl } from '../utils/imageOptimi
  *    - Auto-optimizes on client to lightweight WebP format for low-end device performance.
  *    - Uploads directly to Cloudinary/server media storage.
  * 2. Paste Online URL
- *    - Paste any web image URL with live preview and optional WebP optimization.
+ *    - Paste any web image URL with live preview and auto-containment in flex layout.
  */
 export function ImageUploadField({
   label = 'Image / Photo',
   value = '',
   onChange,
-  hint = 'Supports WebP, PNG, JPEG, or Google Drive sharing link.',
+  hint = '',
+  helper = '',
   aspectRatio = '16/9', // '16/9' | '1/1' | '4/3' | 'auto'
   entityType = null,
   entityId = null,
@@ -28,6 +29,8 @@ export function ImageUploadField({
   const [statusMessage, setStatusMessage] = useState('');
   const [stats, setStats] = useState(null); // { originalBytes, optimizedBytes, width, height }
   const fileInputRef = useRef(null);
+
+  const helperText = hint || helper || 'Supports WebP, PNG, JPEG, or Google Drive sharing link.';
 
   const formatBytes = (bytes) => {
     if (!bytes || bytes === 0) return '0 B';
@@ -149,13 +152,24 @@ export function ImageUploadField({
   };
 
   return (
-    <div style={{ marginBottom: '1.25rem' }}>
-      <label style={{ display: 'block', fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.35rem', color: 'var(--color-text, #111)' }}>
-        {label}
-      </label>
+    <div className="ops-image-upload-card">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+        <label style={{ display: 'block', fontWeight: 700, fontSize: '0.875rem', color: 'var(--ops-on-surface, #0f172a)', margin: 0 }}>
+          {label}
+        </label>
+        {value ? (
+          <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--ops-primary, #005a5b)', backgroundColor: 'rgba(0, 90, 91, 0.08)', padding: '2px 8px', borderRadius: '4px' }}>
+            Attached
+          </span>
+        ) : (
+          <span style={{ fontSize: '11px', fontWeight: 500, color: 'var(--ops-outline, #64748b)' }}>
+            Empty
+          </span>
+        )}
+      </div>
 
       {/* Mode Switcher Tabs */}
-      <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', width: '100%' }}>
         <button
           type="button"
           onClick={() => setMode('upload')}
@@ -164,10 +178,11 @@ export function ImageUploadField({
             fontSize: '12px',
             fontWeight: 600,
             borderRadius: '6px',
-            border: '1px solid var(--color-border, #ddd)',
-            background: mode === 'upload' ? 'var(--color-primary, #005a5b)' : '#fff',
-            color: mode === 'upload' ? '#fff' : 'inherit',
+            border: '1px solid ' + (mode === 'upload' ? 'var(--ops-primary, #005a5b)' : 'var(--ops-outline-variant, #cbd5e1)'),
+            background: mode === 'upload' ? 'var(--ops-primary, #005a5b)' : '#fff',
+            color: mode === 'upload' ? '#fff' : 'var(--ops-on-surface, #1e293b)',
             cursor: 'pointer',
+            transition: 'all 0.15s ease',
           }}
         >
           Direct Upload (System / Drive)
@@ -180,10 +195,11 @@ export function ImageUploadField({
             fontSize: '12px',
             fontWeight: 600,
             borderRadius: '6px',
-            border: '1px solid var(--color-border, #ddd)',
-            background: mode === 'url' ? 'var(--color-primary, #005a5b)' : '#fff',
-            color: mode === 'url' ? '#fff' : 'inherit',
+            border: '1px solid ' + (mode === 'url' ? 'var(--ops-primary, #005a5b)' : 'var(--ops-outline-variant, #cbd5e1)'),
+            background: mode === 'url' ? 'var(--ops-primary, #005a5b)' : '#fff',
+            color: mode === 'url' ? '#fff' : 'var(--ops-on-surface, #1e293b)',
             cursor: 'pointer',
+            transition: 'all 0.15s ease',
           }}
         >
           Paste Online URL
@@ -192,7 +208,7 @@ export function ImageUploadField({
 
       {/* Mode 1: Direct File / Google Drive */}
       {mode === 'upload' && (
-        <div style={{ border: '1px dashed var(--color-border, #cbd5e1)', padding: '14px', borderRadius: '8px', background: '#f8fafc' }}>
+        <div style={{ border: '1px dashed var(--ops-outline-variant, #cbd5e1)', padding: '12px', borderRadius: '8px', background: 'var(--ops-surface-container-low, #f8fafc)', width: '100%', boxSizing: 'border-box' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px' }}>
             <input
               ref={fileInputRef}
@@ -203,7 +219,7 @@ export function ImageUploadField({
             />
             <button
               type="button"
-              className="btn btn-secondary"
+              className="ops-btn ops-btn-secondary ops-btn-sm"
               onClick={() => fileInputRef.current?.click()}
               disabled={status === 'optimizing' || status === 'uploading'}
               style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
@@ -211,31 +227,31 @@ export function ImageUploadField({
               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>upload_file</span>
               <span>{status === 'optimizing' ? 'Compressing…' : status === 'uploading' ? 'Uploading…' : 'Choose Image File'}</span>
             </button>
-            <span style={{ fontSize: '12px', color: '#64748b' }}>
+            <span style={{ fontSize: '12px', color: 'var(--ops-outline, #64748b)' }}>
               Auto-compressed to WebP (minimal memory, maximum speed)
             </span>
           </div>
 
           {/* Google Drive Option */}
-          <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid #e2e8f0' }}>
-            <span style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '4px' }}>
+          <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--ops-outline-subtle, #e2e8f0)' }}>
+            <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--ops-on-surface-variant, #475569)', display: 'block', marginBottom: '6px' }}>
               Or paste Google Drive sharing link:
             </span>
-            <div style={{ display: 'flex', gap: '6px' }}>
+            <div style={{ display: 'flex', gap: '6px', width: '100%', minWidth: 0, alignItems: 'center' }}>
               <input
-                className="input"
+                className="ops-input"
                 type="url"
                 value={driveUrl}
                 onChange={(e) => setDriveUrl(e.target.value)}
                 placeholder="https://drive.google.com/file/d/..."
-                style={{ fontSize: '13px', padding: '6px 10px', flex: 1 }}
+                style={{ fontSize: '13px', padding: '6px 10px', flex: 1, minWidth: 0, width: '100%' }}
               />
               <button
                 type="button"
-                className="btn btn-secondary"
+                className="ops-btn ops-btn-secondary ops-btn-sm"
                 onClick={handleGoogleDriveImport}
                 disabled={!driveUrl.trim() || status === 'uploading'}
-                style={{ fontSize: '12px', whiteSpace: 'nowrap' }}
+                style={{ fontSize: '12px', whiteSpace: 'nowrap', flexShrink: 0 }}
               >
                 Import from Drive
               </button>
@@ -246,22 +262,22 @@ export function ImageUploadField({
 
       {/* Mode 2: Online URL */}
       {mode === 'url' && (
-        <div style={{ border: '1px solid var(--color-border, #cbd5e1)', padding: '12px', borderRadius: '8px', background: '#f8fafc' }}>
-          <div style={{ display: 'flex', gap: '6px' }}>
+        <div style={{ border: '1px solid var(--ops-outline-variant, #cbd5e1)', padding: '12px', borderRadius: '8px', background: 'var(--ops-surface-container-low, #f8fafc)', width: '100%', boxSizing: 'border-box' }}>
+          <div style={{ display: 'flex', gap: '6px', width: '100%', minWidth: 0, alignItems: 'center' }}>
             <input
-              className="input"
+              className="ops-input"
               type="url"
               value={directUrl}
               onChange={(e) => setDirectUrl(e.target.value)}
               placeholder="https://example.com/photo.jpg or Google Drive link"
-              style={{ fontSize: '13px', padding: '6px 10px', flex: 1 }}
+              style={{ fontSize: '13px', padding: '6px 10px', flex: 1, minWidth: 0, width: '100%' }}
             />
             <button
               type="button"
-              className="btn btn-secondary"
+              className="ops-btn ops-btn-primary ops-btn-sm"
               onClick={handleDirectUrlApply}
               disabled={!directUrl.trim()}
-              style={{ fontSize: '12px', whiteSpace: 'nowrap' }}
+              style={{ fontSize: '12px', whiteSpace: 'nowrap', flexShrink: 0 }}
             >
               Apply URL
             </button>
@@ -273,13 +289,16 @@ export function ImageUploadField({
       {statusMessage && (
         <div
           style={{
-            marginTop: '8px',
             fontSize: '12px',
             padding: '6px 10px',
             borderRadius: '6px',
             backgroundColor: status === 'error' ? '#fee2e2' : status === 'success' ? '#ecfdf5' : '#eff6ff',
             color: status === 'error' ? '#b91c1c' : status === 'success' ? '#047857' : '#1d4ed8',
             fontWeight: 500,
+            wordBreak: 'break-word',
+            minWidth: 0,
+            width: '100%',
+            boxSizing: 'border-box',
           }}
         >
           {statusMessage}
@@ -288,11 +307,26 @@ export function ImageUploadField({
 
       {/* Live Preview Block */}
       {value ? (
-        <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            padding: '8px 10px',
+            background: 'var(--ops-surface-container-lowest, #fff)',
+            border: '1px solid var(--ops-outline-subtle, #e2e8f0)',
+            borderRadius: '8px',
+            width: '100%',
+            maxWidth: '100%',
+            minWidth: 0,
+            boxSizing: 'border-box',
+            overflow: 'hidden',
+          }}
+        >
           <div
             style={{
-              width: '100px',
-              height: '70px',
+              width: '64px',
+              height: '48px',
               borderRadius: '6px',
               overflow: 'hidden',
               backgroundColor: '#f1f5f9',
@@ -300,27 +334,41 @@ export function ImageUploadField({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              border: '1px solid var(--ops-outline-subtle, #e2e8f0)',
             }}
           >
             <img
               src={value}
               alt="Preview"
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
               onError={(e) => {
                 e.target.style.display = 'none';
               }}
             />
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <span style={{ fontSize: '12px', fontWeight: 600, color: '#0f172a', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+            <span
+              title={value}
+              style={{
+                fontSize: '12px',
+                fontWeight: 600,
+                color: 'var(--ops-on-surface, #0f172a)',
+                display: 'block',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                maxWidth: '100%',
+                width: '100%',
+              }}
+            >
               {value}
             </span>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
-              <span style={{ fontSize: '11px', background: '#e0f2fe', color: '#0369a1', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '3px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '10px', background: '#e0f2fe', color: '#0369a1', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
                 Active Web Image
               </span>
               {stats && (
-                <span style={{ fontSize: '11px', color: '#64748b' }}>
+                <span style={{ fontSize: '11px', color: 'var(--ops-outline, #64748b)' }}>
                   {stats.width}x{stats.height} • {formatBytes(stats.optimizedBytes)}
                 </span>
               )}
@@ -329,23 +377,26 @@ export function ImageUploadField({
           <button
             type="button"
             onClick={handleRemove}
+            className="ops-btn ops-btn-sm"
             style={{
               border: 'none',
               background: '#fee2e2',
               color: '#dc2626',
               borderRadius: '6px',
-              padding: '6px 10px',
+              padding: '5px 10px',
               cursor: 'pointer',
               fontSize: '12px',
               fontWeight: 600,
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
             }}
           >
             Remove
           </button>
         </div>
       ) : (
-        <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#64748b' }}>
-          {hint}
+        <p style={{ margin: 0, fontSize: '12px', color: 'var(--ops-outline, #64748b)', wordBreak: 'break-word' }}>
+          {helperText}
         </p>
       )}
     </div>

@@ -81,12 +81,17 @@ export function RequestCare({ locale }) {
   }
 
   if (error) {
-    return <LoadError t={{ retry: 'Retry' }} onRetry={loadData} />;
+    return <LoadError t={{ loadError: 'Could not load care request data.', tryAgain: 'Try again' }} onRetry={() => loadData()} />;
   }
 
   // Pre-selected service or hospital from query parameters if visitor navigated from Home / Services / Hospitals
-  const initialServiceId = searchParams.get('service_id');
-  const initialHospitalId = searchParams.get('hospital_id');
+  const rawHospitalParam = searchParams.get('hospital_id') || searchParams.get('hospital');
+  const matchedHospital = (hospitals || []).find((h) => h.id === rawHospitalParam || h.slug === rawHospitalParam);
+  const initialHospitalId = matchedHospital ? matchedHospital.id : rawHospitalParam;
+
+  const rawServiceParam = searchParams.get('service_id') || searchParams.get('service');
+  const matchedService = (services || []).find((s) => s.id === rawServiceParam || s.slug === rawServiceParam);
+  const initialServiceId = matchedService ? matchedService.id : rawServiceParam;
 
   const activeStatuses = ['REQUEST_RECEIVED', 'UNDER_REVIEW', 'COORDINATION_IN_PROGRESS', 'CONFIRMED', 'SCHEDULED', 'SERVICE_IN_PROGRESS', 'ACTION_REQUIRED'];
   const activeRecipientIds = (userRequests || [])

@@ -116,22 +116,33 @@ export function createContentOpsRouter(db) {
 export function createContentPublicRouter(db) {
   const router = Router();
 
-  // Home bundle: everything the public home page needs in one round trip.
-  router.get('/home', async (_req, res, next) => {
+  // One endpoint per resource — the page decides which it needs, and each
+  // response stays small and independently cacheable. (The old /home bundle
+  // that merged hero+faqs+testimonials was removed in the backend audit: it
+  // forced every visitor to download all three even when a page wanted one.)
+
+  // Hero journey slides (active only), for the homepage carousel.
+  router.get('/hero-slides', async (_req, res, next) => {
     try {
       cachePublic(res);
-      const cacheKey = 'home_bundle';
+      const cacheKey = 'hero_slides:public:active';
       const cached = getCached(cacheKey);
       if (cached) return res.json({ data: cached });
+      const { items } = await heroSlides.list(db, { page: 1, limit: 10, publishedOnly: true });
+      setCached(cacheKey, items, 30_000);
+      res.json({ data: items });
+    } catch (err) {
+      next(err);
+    }
+  });
 
-      const [hero, faqList, testimonialList] = await Promise.all([
-        heroSlides.list(db, { page: 1, limit: 10, publishedOnly: true }),
-        faqs.list(db, { page: 1, limit: 20, publishedOnly: true }),
-        testimonials.list(db, { page: 1, limit: 10, publishedOnly: true }),
-      ]);
-      const data = { hero: hero.items, faqs: faqList.items, testimonials: testimonialList.items };
-      setCached(cacheKey, data, 30_000);
-      res.json({ data });
+  // Published testimonials (small landing-page set).
+  router.get('/testimonials', async (req, res, next) => {
+    try {
+      cachePublic(res);
+      const { page, limit } = parsePagination(req.query);
+      const { items, total } = await testimonials.list(db, { page, limit: Math.min(limit, 10), publishedOnly: true });
+      res.json(paginatedResponse(items, total, page, Math.min(limit, 10)));
     } catch (err) {
       next(err);
     }

@@ -37,7 +37,7 @@ export function ProfilePrivacyGovernance({
           </div>
           <div>
             <h3 className="profile-section-title">Privacy & Medical Data Governance</h3>
-            <p className="profile-section-desc">Aligned with India Digital Information Security in Healthcare Act (DISHA) & HIPAA.</p>
+            <p className="profile-section-desc">Control how your family's health information is stored, shared, and deleted.</p>
           </div>
         </div>
 

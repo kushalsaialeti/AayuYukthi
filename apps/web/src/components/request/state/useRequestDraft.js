@@ -27,15 +27,16 @@ const INITIAL_DRAFT = {
   serviceIds: [],
   // Step 3: Hospital
   hospitalId: null,
-  // Step 4: Visit / purpose & special directives
-  appointmentType: '', // e.g. 'Consultation', 'Diagnostic Scan', etc.
+  // Visit purpose defaults to consultation
+  appointmentType: 'Hospital Consultation & Accompaniment',
   additionalRequirements: '',
-  // Step 5: Schedule
+  // Step 4 (was 5): Schedule Date & Time
   appointmentDate: '',
+  appointmentTime: '09:00:00',
   timeSlot: 'Morning (08:00 AM – 12:00 PM)',
   scheduleAt: null,
-  // Step 6: Pickup & Drop Logistics + Updates Phone + Consent
-  pickupRequired: false,
+  // Step 5 (was 6): Doorstep Pickup (Single required option) + Mandatory WhatsApp + Consent
+  pickupRequired: true,
   pickupAddress: '',
   dropoffAddress: '',
   updatePhone: '',
@@ -51,8 +52,8 @@ export function useRequestDraft(user) {
     try {
       const saved = sessionStorage.getItem(`${STORAGE_KEY}_step`);
       const n = Number(saved);
-      // Strictly clamp between 1 and 7, never restoring to step 8+ or 12
-      return n >= 1 && n <= 7 ? n : 1;
+      // Strictly clamp between 1 and 6
+      return n >= 1 && n <= 6 ? n : 1;
     } catch {
       return 1;
     }
@@ -186,7 +187,7 @@ export function useRequestDraft(user) {
     setErrors({});
   }, []);
 
-  // Validation function per step
+  // Validation function per step (6 Steps total)
   const validateStep = useCallback((stepNumber, data = draft) => {
     const errs = {};
     if (stepNumber === 1) {
@@ -203,29 +204,28 @@ export function useRequestDraft(user) {
         errs.hospital = 'Please select a hospital or medical centre';
       }
     } else if (stepNumber === 4) {
-      if (!data.appointmentType?.trim()) {
-        errs.appointmentType = 'Please specify the visit purpose or specialty';
-      }
-    } else if (stepNumber === 5) {
+      // Step 4: Schedule Date & Time
       if (!data.appointmentDate) {
-        errs.appointmentDate = 'Please select a visit date';
+        errs.appointmentDate = 'Please select an appointment date';
       } else {
         const todayStr = new Date().toISOString().slice(0, 10);
         if (data.appointmentDate < todayStr) {
           errs.appointmentDate = 'Appointment date cannot be in the past';
         }
       }
-    } else if (stepNumber === 6) {
-      if (data.pickupRequired && (!data.pickupAddress || data.pickupAddress.trim().length < 5)) {
-        errs.pickupAddress = 'Please enter a complete pickup address (at least 5 characters)';
+    } else if (stepNumber === 5) {
+      // Step 5: Doorstep Pickup & Mandatory Consent
+      if (!data.pickupAddress || data.pickupAddress.trim().length < 5) {
+        errs.pickupAddress = 'Please enter a complete residence pickup address (at least 5 characters)';
       }
-      if (data.updatePhone && !/^[+0-9\s-]{8,20}$/.test(data.updatePhone.trim())) {
-        errs.updatePhone = 'Please enter a valid phone number for journey updates';
+      if (!data.updatePhone || !/^[+0-9\s-]{10,20}$/.test(data.updatePhone.trim())) {
+        errs.updatePhone = 'Please enter a valid WhatsApp mobile number (minimum 10 digits)';
       }
       if (!data.consentAccepted) {
-        errs.consent = 'You must accept the Privacy Policy and Terms & Conditions to proceed';
+        errs.consent = 'You must accept the Terms & Conditions and Privacy Policy to proceed';
       }
-    } else if (stepNumber === 7) {
+    } else if (stepNumber === 6) {
+      // Step 6: Review & Identity Verification
       if (!user) {
         errs.auth = 'Please complete identity verification to confirm your care request';
       }
@@ -241,7 +241,7 @@ export function useRequestDraft(user) {
       return false;
     }
     setErrors({});
-    const newStep = Math.min(step + 1, 7);
+    const newStep = Math.min(step + 1, 6);
     setStep(newStep);
     track('REQUEST_STEP_COMPLETED', { step });
     track('REQUEST_STEP_VIEWED', { step: newStep });
@@ -259,7 +259,7 @@ export function useRequestDraft(user) {
   }, [step, draft, syncServerDraft]);
 
   const goToStep = useCallback((targetStep) => {
-    if (targetStep >= 1 && targetStep <= 7) {
+    if (targetStep >= 1 && targetStep <= 6) {
       setStep(targetStep);
       setErrors({});
       track('REQUEST_STEP_VIEWED', { step: targetStep, jump: true });

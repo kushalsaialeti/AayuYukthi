@@ -1,15 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
+// Hero copy comes exclusively from CMS contact blocks — no invented fallback
+// text and no live wait-time widget (wait times cannot be verified).
 export function ContactHero({ blocks, contact }) {
+  void contact;
   const safeBlocks = blocks || {};
-  const eyebrow = safeBlocks['contact.hero.eyebrow']?.body_en ||
-    'WE ARE HERE FOR YOUR FAMILY • CARE COORDINATION HELPLINE';
-  const title = safeBlocks['contact.hero.title']?.body_en ||
-    'How can we help your family today?';
-  const subtitle = safeBlocks['contact.hero.subtitle']?.body_en ||
-    'Whether you have an upcoming hospital consultation, need urgent next-day accompaniment, or wish to plan custom recurring elder care, our dedicated care counseling desk is ready to support you.';
-  const waitTime = safeBlocks['contact.live.wait_time']?.body_en || '38 seconds';
+  const eyebrow = safeBlocks['contact.hero.eyebrow']?.body_en || null;
+  const title = safeBlocks['contact.hero.title']?.body_en || null;
+  const subtitle = safeBlocks['contact.hero.subtitle']?.body_en || null;
 
   return (
     <>
@@ -25,22 +24,15 @@ export function ContactHero({ blocks, contact }) {
       {/* Hero Section */}
       <section className="contact-hero-section">
         <div className="contact-hero-content">
-          <div className="contact-pulse-badge">
-            <span className="contact-pulse-dot" />
-            <span>{eyebrow}</span>
-          </div>
-
-          <h1 className="contact-hero-title">{title}</h1>
-          <p className="contact-hero-sub">{subtitle}</p>
-
-          <div className="contact-live-pill">
-            <div className="contact-live-pill-status">
-              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>schedule</span>
-              <span>Care Desk Live Now</span>
+          {eyebrow && (
+            <div className="contact-pulse-badge">
+              <span className="contact-pulse-dot" />
+              <span>{eyebrow}</span>
             </div>
-            <span className="contact-live-pill-dot">•</span>
-            <span>Average telephone wait: <strong>{waitTime}</strong></span>
-          </div>
+          )}
+
+          {title && <h1 className="contact-hero-title">{title}</h1>}
+          {subtitle && <p className="contact-hero-sub">{subtitle}</p>}
         </div>
       </section>
     </>

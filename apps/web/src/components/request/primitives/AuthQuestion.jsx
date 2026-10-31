@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { api } from '../../../api.js';
 import { useCustomerAuth } from '../../../auth.jsx';
 import { track } from '../../../analytics.js';
@@ -30,6 +30,7 @@ export function AuthQuestion({
   const [busy, setBusy] = useState(false);
   const [localError, setLocalError] = useState('');
   const [cooldown, setCooldown] = useState(0);
+  const autoSubmittingRef = useRef(false);
 
   const startCooldown = () => {
     setCooldown(30);
@@ -43,7 +44,7 @@ export function AuthQuestion({
 
   // 1. Host direct email verification
   const handleHostEmailOtpRequest = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setLocalError('');
     if (!email.trim() || !email.includes('@')) {
       setLocalError('Please enter a valid email address');
@@ -53,7 +54,6 @@ export function AuthQuestion({
     track('AUTH_STARTED', { method: 'email_host' });
     try {
       await api.otpRequest({ email: email.trim(), purpose: 'login' }).catch(async () => {
-        // If not found in login, try signup
         return api.signup({ full_name: 'Host Coordinator', email: email.trim() });
       });
       setOtpSent(true);
@@ -67,7 +67,7 @@ export function AuthQuestion({
 
   // 2. Self booking email verification
   const handleSelfEmailOtpRequest = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setLocalError('');
     if (!email.trim() || !email.includes('@')) {
       setLocalError('Please enter a valid email address');
@@ -76,7 +76,6 @@ export function AuthQuestion({
     setBusy(true);
     track('AUTH_STARTED', { method: 'email_self' });
     try {
-      // Create user with recipientName as their account full name
       const effectiveName = recipientName.trim() || 'Patient Self';
       if (password && password.length >= 8) {
         await api.signup({ full_name: effectiveName, email: email.trim(), password });
@@ -86,7 +85,6 @@ export function AuthQuestion({
       setOtpSent(true);
       startCooldown();
     } catch (err) {
-      // If already registered, switch to login OTP
       if (err.code === 'EMAIL_IN_USE' || err.message?.includes('already')) {
         try {
           await api.otpRequest({ email: email.trim(), purpose: 'login' });
@@ -103,9 +101,9 @@ export function AuthQuestion({
     }
   };
 
-  // 3. Caregiver traditional signup form (for mother, father, spouse, child, other)
+  // 3. Caregiver signup form (with buttons toggle)
   const handleCaregiverSignup = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setLocalError('');
     if (!caregiverName.trim()) {
       setLocalError('Please enter your full name as the family caregiver');
@@ -140,9 +138,9 @@ export function AuthQuestion({
     }
   };
 
-  // Traditional caregiver login
+  // Caregiver login
   const handleCaregiverLogin = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setLocalError('');
     if (!email.trim() || !email.includes('@')) {
       setLocalError('Please enter your email address');
@@ -167,35 +165,41 @@ export function AuthQuestion({
     }
   };
 
-  // Verify Email OTP
-  const handleVerifyEmailOtp = async (e) => {
-    e.preventDefault();
-    setLocalError('');
-    if (code.trim().length !== 6) {
-      setLocalError('Please enter the 6-digit code');
-      return;
-    }
+  // Verify Email OTP (supports auto-submit)
+  const executeVerifyEmailOtp = async (inputCode) => {
+    if (busy || autoSubmittingRef.current) return;
+    const cleanCode = (inputCode || code).trim();
+    if (cleanCode.length !== 6) return;
+
+    autoSubmittingRef.current = true;
     setBusy(true);
+    setLocalError('');
     try {
       let data;
       try {
-        data = await api.otpVerify({ email: email.trim(), purpose: 'signup', code: code.trim() });
+        data = await api.otpVerify({ email: email.trim(), purpose: 'signup', code: cleanCode });
       } catch {
-        data = await api.otpVerify({ email: email.trim(), purpose: 'login', code: code.trim() });
+        data = await api.otpVerify({ email: email.trim(), purpose: 'login', code: cleanCode });
       }
       persist(data, true);
       track('AUTH_COMPLETED', { method: 'email_otp' });
       if (onAuthSuccess) onAuthSuccess(data.user);
     } catch (err) {
-      setLocalError(err.message || 'Invalid or expired code. Please try again.');
+      setLocalError(err.message || 'Invalid or expired code. Please check code or request new one.');
     } finally {
       setBusy(false);
+      autoSubmittingRef.current = false;
     }
   };
 
-  // Phone OTP Flow (when enabled via CMS)
+  const handleVerifyEmailOtp = (e) => {
+    if (e) e.preventDefault();
+    executeVerifyEmailOtp(code);
+  };
+
+  // Phone OTP Flow
   const handleSendPhoneOtp = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setLocalError('');
     const raw = phone.trim();
     if (!raw) {
@@ -217,24 +221,30 @@ export function AuthQuestion({
     }
   };
 
-  const handleVerifyPhoneOtp = async (e) => {
-    e.preventDefault();
-    setLocalError('');
-    if (code.trim().length !== 6) {
-      setLocalError('Please enter the 6-digit code');
-      return;
-    }
+  const executeVerifyPhoneOtp = async (inputCode) => {
+    if (busy || autoSubmittingRef.current) return;
+    const cleanCode = (inputCode || code).trim();
+    if (cleanCode.length !== 6) return;
+
+    autoSubmittingRef.current = true;
     setBusy(true);
+    setLocalError('');
     try {
-      const data = await api.otpVerify({ phone_e164: phone, code: code.trim() });
+      const data = await api.otpVerify({ phone_e164: phone, code: cleanCode });
       persist(data, true);
       track('AUTH_COMPLETED', { method: 'phone_otp' });
       if (onAuthSuccess) onAuthSuccess(data.user);
     } catch (err) {
-      setLocalError(err.message || 'Invalid verification code.');
+      setLocalError(err.message || 'Invalid phone verification code.');
     } finally {
       setBusy(false);
+      autoSubmittingRef.current = false;
     }
+  };
+
+  const handleVerifyPhoneOtp = (e) => {
+    if (e) e.preventDefault();
+    executeVerifyPhoneOtp(code);
   };
 
   // If already logged in, show verified status
@@ -244,7 +254,7 @@ export function AuthQuestion({
         <div className="rq-question-header">
           <span className="rq-eyebrow">
             <span className="material-symbols-outlined" style={{ fontSize: 16 }}>verified_user</span>
-            Step 10 • Account Verified
+            Step 6 of 6 • Account Verified
           </span>
           <h2 className="rq-title" tabIndex="-1">Logged in as {user.full_name || 'Caregiver'}</h2>
           <p className="rq-description">
@@ -252,15 +262,15 @@ export function AuthQuestion({
           </p>
         </div>
 
-        <div style={{ background: 'var(--rq-primary-tint)', border: '1px solid var(--rq-primary)', borderRadius: '12px', padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
-          <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--rq-primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ background: 'var(--rq-primary-tint, #ecfdf5)', border: '1.5px solid var(--rq-primary, #059669)', borderRadius: '12px', padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
+          <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--rq-primary, #059669)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <span className="material-symbols-outlined" style={{ fontSize: 24 }}>check</span>
           </div>
           <div>
-            <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--rq-text)' }}>{user.full_name}</div>
-            <div style={{ fontSize: '14px', color: 'var(--rq-text-muted)' }}>{user.email || user.phone_e164}</div>
-            <div style={{ fontSize: '12px', color: 'var(--rq-success)', fontWeight: 600, marginTop: '4px' }}>
-              ✓ Authenticated & Ready for Submission
+            <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--rq-text, #0f172a)' }}>{user.full_name}</div>
+            <div style={{ fontSize: '14px', color: 'var(--rq-text-muted, #64748b)' }}>{user.email || user.phone_e164}</div>
+            <div style={{ fontSize: '12px', color: '#059669', fontWeight: 600, marginTop: '4px' }}>
+              ✓ Authenticated &amp; Ready for Final Submission
             </div>
           </div>
         </div>
@@ -269,14 +279,14 @@ export function AuthQuestion({
   }
 
   const title = cmsConfig.title || 'Verify your account to confirm request';
-  const desc = cmsConfig.desc || 'We create or verify your account so you receive doctor dossiers, receipts, and live escort updates.';
+  const desc = cmsConfig.desc || 'Create or sign in to your caregiver account to receive doctor dossiers, receipts, and live escort updates.';
 
   return (
     <div className="rq-question-container">
       <div className="rq-question-header">
         <span className="rq-eyebrow">
           <span className="material-symbols-outlined" style={{ fontSize: 16 }}>lock</span>
-          Step 10 • Verification
+          Step 6 of 6 • Identity Verification
         </span>
         <h2 className="rq-title" tabIndex="-1">{title}</h2>
         <p className="rq-description">{desc}</p>
@@ -284,7 +294,7 @@ export function AuthQuestion({
 
       {/* Method Switcher Tabs when both Email and Phone are enabled in CMS */}
       {emailEnabled && phoneEnabled && (
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', borderBottom: '1px solid var(--rq-border)', paddingBottom: '8px' }}>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', borderBottom: '1px solid var(--rq-border, #e2e8f0)', paddingBottom: '8px' }}>
           <button
             type="button"
             className={`rq-btn-secondary ${activeMethod === 'email' ? 'rq-btn-primary' : ''}`}
@@ -310,13 +320,13 @@ export function AuthQuestion({
       {activeMethod === 'email' && (
         <>
           {otpSent ? (
-            /* OTP Verification Screen */
-            <form onSubmit={handleVerifyEmailOtp} style={{ background: 'var(--rq-surface-alt)', padding: '24px', borderRadius: '12px', border: '1px solid var(--rq-border)' }}>
-              <div style={{ marginBottom: '16px', fontSize: '14px', color: 'var(--rq-text)' }}>
+            /* OTP Verification Screen with AUTO-SUBMIT */
+            <form onSubmit={handleVerifyEmailOtp} style={{ background: 'var(--rq-surface-alt, #f8fafc)', padding: '24px', borderRadius: '12px', border: '1px solid var(--rq-border, #e2e8f0)' }}>
+              <div style={{ marginBottom: '16px', fontSize: '14px', color: 'var(--rq-text, #0f172a)' }}>
                 Verification passcode sent to <strong>{email}</strong>.{' '}
                 <button
                   type="button"
-                  style={{ background: 'none', border: 'none', color: 'var(--rq-primary)', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
+                  style={{ background: 'none', border: 'none', color: 'var(--rq-primary, #004349)', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
                   onClick={() => { setOtpSent(false); setCode(''); }}
                 >
                   Change Email
@@ -324,17 +334,35 @@ export function AuthQuestion({
               </div>
 
               <div className="rq-form-group">
-                <label className="rq-label" htmlFor="rq-email-otp">Enter 6-Digit Email Code *</label>
+                <label className="rq-label" htmlFor="rq-email-otp">
+                  Enter 6-Digit Verification Code *
+                  <span style={{ fontSize: '12px', color: '#10b981', fontWeight: 600, marginLeft: '8px' }}>
+                    (Auto-submits on 6th digit)
+                  </span>
+                </label>
                 <input
                   id="rq-email-otp"
                   type="text"
                   maxLength={6}
                   className="rq-input"
-                  style={{ letterSpacing: '0.3em', fontSize: '20px', textAlign: 'center' }}
+                  style={{ letterSpacing: '0.35em', fontSize: '22px', textAlign: 'center', fontWeight: 700 }}
                   placeholder="123456"
                   value={code}
-                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                  onChange={(e) => {
+                    const clean = e.target.value.replace(/\D/g, '').slice(0, 6);
+                    setCode(clean);
+                    if (clean.length === 6) {
+                      executeVerifyEmailOtp(clean);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && code.length === 6) {
+                      e.preventDefault();
+                      handleVerifyEmailOtp(e);
+                    }
+                  }}
                   autoFocus
+                  required
                 />
               </div>
 
@@ -345,7 +373,7 @@ export function AuthQuestion({
                   style={{ flex: 1, justifyContent: 'center' }}
                   disabled={busy || code.length !== 6}
                 >
-                  {busy ? 'Verifying...' : 'Verify Code & Proceed'}
+                  {busy ? 'Verifying Code...' : 'Verify Code & Proceed'}
                 </button>
                 <button
                   type="button"
@@ -362,13 +390,13 @@ export function AuthQuestion({
               </div>
             </form>
           ) : role === 'host' ? (
-            /* 1. Host Role: Direct email collection & OTP verification */
-            <form onSubmit={handleHostEmailOtpRequest} style={{ background: 'var(--rq-surface-alt)', padding: '24px', borderRadius: '12px', border: '1px solid var(--rq-border)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', color: 'var(--rq-primary)', fontWeight: 600 }}>
+            /* 1. Host Role */
+            <form onSubmit={handleHostEmailOtpRequest} style={{ background: 'var(--rq-surface-alt, #f8fafc)', padding: '24px', borderRadius: '12px', border: '1px solid var(--rq-border, #e2e8f0)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', color: 'var(--rq-primary, #004349)', fontWeight: 600 }}>
                 <span className="material-symbols-outlined">badge</span>
                 <span>Host / Care Coordinator Access</span>
               </div>
-              <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: 'var(--rq-text-muted)' }}>
+              <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: 'var(--rq-text-muted, #64748b)' }}>
                 As a host, enter your organizational email to receive the direct login passcode and manage hospital visits.
               </p>
 
@@ -396,14 +424,14 @@ export function AuthQuestion({
               </button>
             </form>
           ) : role === 'self' ? (
-            /* 2. Self Role: Account automatically created with user's name from step 1 */
-            <form onSubmit={handleSelfEmailOtpRequest} style={{ background: 'var(--rq-surface-alt)', padding: '24px', borderRadius: '12px', border: '1px solid var(--rq-border)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', color: 'var(--rq-primary)', fontWeight: 600 }}>
+            /* 2. Self Role */
+            <form onSubmit={handleSelfEmailOtpRequest} style={{ background: 'var(--rq-surface-alt, #f8fafc)', padding: '24px', borderRadius: '12px', border: '1px solid var(--rq-border, #e2e8f0)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', color: 'var(--rq-primary, #004349)', fontWeight: 600 }}>
                 <span className="material-symbols-outlined">person</span>
                 <span>Self Booking: Account for {recipientName || 'You'}</span>
               </div>
-              <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: 'var(--rq-text-muted)' }}>
-                Your account will be created under the patient name <strong>{recipientName || 'Self'}</strong>. Enter your email to verify and receive visit coordinates.
+              <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: 'var(--rq-text-muted, #64748b)' }}>
+                Your account will be created under patient name <strong>{recipientName || 'Self'}</strong>. Enter your email to verify and receive visit coordinates.
               </p>
 
               <div className="rq-form-group">
@@ -442,32 +470,87 @@ export function AuthQuestion({
               </button>
             </form>
           ) : (
-            /* 3. Other Roles: Traditional signup form for the Caregiver */
-            <div style={{ background: 'var(--rq-surface-alt)', padding: '24px', borderRadius: '12px', border: '1px solid var(--rq-border)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--rq-primary)', fontWeight: 600 }}>
-                  <span className="material-symbols-outlined">supervisor_account</span>
-                  <span>{authMode === 'signup' ? 'Caregiver Sign Up' : 'Caregiver Log In'}</span>
-                </div>
-                <button
-                  type="button"
-                  style={{ background: 'none', border: 'none', color: 'var(--rq-primary)', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}
-                  onClick={() => {
-                    setAuthMode(authMode === 'signup' ? 'login' : 'signup');
-                    setLocalError('');
+            /* 3. Non-logged-in User Form: Sign Up vs Sign In in clear Buttons */
+            <div style={{ background: 'var(--rq-surface-alt, #f8fafc)', padding: '24px', borderRadius: '14px', border: '1px solid var(--rq-border, #e2e8f0)' }}>
+              {/* Segmented Buttons for Sign Up vs Sign In */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    background: '#e2e8f0',
+                    borderRadius: '10px',
+                    padding: '3px',
+                    gap: '4px',
                   }}
+                  role="tablist"
+                  aria-label="Caregiver authentication mode"
                 >
-                  {authMode === 'signup' ? 'Already have an account? Log In' : 'Need an account? Sign Up'}
-                </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={authMode === 'signup'}
+                    onClick={() => {
+                      setAuthMode('signup');
+                      setLocalError('');
+                    }}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      fontSize: '13.5px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      background: authMode === 'signup' ? 'var(--rq-primary, #004349)' : 'transparent',
+                      color: authMode === 'signup' ? '#ffffff' : '#475569',
+                      boxShadow: authMode === 'signup' ? '0 2px 6px rgba(0,0,0,0.12)' : 'none',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>person_add</span>
+                    <span>Sign Up (New Caregiver)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={authMode === 'login'}
+                    onClick={() => {
+                      setAuthMode('login');
+                      setLocalError('');
+                    }}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      fontSize: '13.5px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      background: authMode === 'login' ? 'var(--rq-primary, #004349)' : 'transparent',
+                      color: authMode === 'login' ? '#ffffff' : '#475569',
+                      boxShadow: authMode === 'login' ? '0 2px 6px rgba(0,0,0,0.12)' : 'none',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>login</span>
+                    <span>Sign In (Existing Account)</span>
+                  </button>
+                </div>
               </div>
 
-              <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: 'var(--rq-text-muted)' }}>
+              <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: 'var(--rq-text-muted, #64748b)' }}>
                 {authMode === 'signup'
-                  ? `You are booking for ${recipientName || 'your family member'}. Create your caregiver account below to track the visit.`
-                  : 'Log in with your existing caregiver email to link this hospital visit.'}
+                  ? `Booking for ${recipientName || 'your family member'}. Create your account below to track the companion and live updates.`
+                  : 'Log in with your existing caregiver credentials to link this hospital visit.'}
               </p>
 
               {authMode === 'signup' ? (
+                /* Caregiver Sign Up Form */
                 <form onSubmit={handleCaregiverSignup}>
                   <div className="rq-form-group">
                     <label className="rq-label" htmlFor="rq-cg-name">Caregiver Full Name *</label>
@@ -478,6 +561,7 @@ export function AuthQuestion({
                       placeholder="e.g. Ramesh Chandra (Son / Daughter / Spouse)"
                       value={caregiverName}
                       onChange={(e) => setCaregiverName(e.target.value)}
+                      autoComplete="name"
                       autoFocus
                       required
                     />
@@ -492,6 +576,7 @@ export function AuthQuestion({
                       placeholder="caregiver@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                      autoComplete="email"
                       required
                     />
                   </div>
@@ -505,9 +590,11 @@ export function AuthQuestion({
                       placeholder="Minimum 8 characters"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      autoComplete="new-password"
                     />
                   </div>
 
+                  {/* Single CTA button for Sign Up */}
                   <button
                     type="submit"
                     className="rq-btn-primary"
@@ -518,6 +605,7 @@ export function AuthQuestion({
                   </button>
                 </form>
               ) : (
+                /* Caregiver Log In Form */
                 <form onSubmit={handleCaregiverLogin}>
                   <div className="rq-form-group">
                     <label className="rq-label" htmlFor="rq-login-email">Email Address *</label>
@@ -528,6 +616,7 @@ export function AuthQuestion({
                       placeholder="caregiver@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                      autoComplete="email"
                       autoFocus
                       required
                     />
@@ -542,16 +631,18 @@ export function AuthQuestion({
                       placeholder="Enter password or leave blank for OTP"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      autoComplete="current-password"
                     />
                   </div>
 
+                  {/* Single CTA button for Log In */}
                   <button
                     type="submit"
                     className="rq-btn-primary"
                     style={{ width: '100%', justifyContent: 'center' }}
                     disabled={busy || !email.trim()}
                   >
-                    {busy ? 'Authenticating...' : (password ? 'Log In to Account' : 'Send Login OTP Code')}
+                    {busy ? 'Authenticating...' : (password ? 'Sign In with Password' : 'Send Login OTP Code')}
                   </button>
                 </form>
               )}
@@ -562,8 +653,8 @@ export function AuthQuestion({
 
       {/* PHONE AUTHENTICATION (Available only when turned on in CMS) */}
       {activeMethod === 'phone' && phoneEnabled && (
-        <div style={{ background: 'var(--rq-surface-alt)', padding: '24px', borderRadius: '12px', border: '1px solid var(--rq-border)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', color: 'var(--rq-primary)', fontWeight: 600 }}>
+        <div style={{ background: 'var(--rq-surface-alt, #f8fafc)', padding: '24px', borderRadius: '12px', border: '1px solid var(--rq-border, #e2e8f0)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', color: 'var(--rq-primary, #004349)', fontWeight: 600 }}>
             <span className="material-symbols-outlined">phone_iphone</span>
             <span>Phone OTP Verification</span>
           </div>
@@ -571,12 +662,12 @@ export function AuthQuestion({
           {!otpSent ? (
             <form onSubmit={handleSendPhoneOtp}>
               <div className="rq-form-group">
-                <label className="rq-label" htmlFor="rq-phone-input">Mobile Phone Number (India +91) *</label>
+                <label className="rq-label" htmlFor="rq-phone-input">Mobile Phone Number *</label>
                 <input
                   id="rq-phone-input"
                   type="tel"
                   className="rq-input"
-                  placeholder="98765 43210"
+                  placeholder="+91 98765 43210"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   autoFocus
@@ -595,11 +686,11 @@ export function AuthQuestion({
             </form>
           ) : (
             <form onSubmit={handleVerifyPhoneOtp}>
-              <div style={{ marginBottom: '16px', fontSize: '14px', color: 'var(--rq-text)' }}>
+              <div style={{ marginBottom: '16px', fontSize: '14px', color: 'var(--rq-text, #0f172a)' }}>
                 Code sent to <strong>{phone}</strong>.{' '}
                 <button
                   type="button"
-                  style={{ background: 'none', border: 'none', color: 'var(--rq-primary)', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
+                  style={{ background: 'none', border: 'none', color: 'var(--rq-primary, #004349)', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
                   onClick={() => { setOtpSent(false); setCode(''); }}
                 >
                   Change
@@ -607,17 +698,35 @@ export function AuthQuestion({
               </div>
 
               <div className="rq-form-group">
-                <label className="rq-label" htmlFor="rq-phone-code">Enter 6-Digit Code *</label>
+                <label className="rq-label" htmlFor="rq-phone-code">
+                  Enter 6-Digit Code *
+                  <span style={{ fontSize: '12px', color: '#10b981', fontWeight: 600, marginLeft: '8px' }}>
+                    (Auto-submits on 6th digit)
+                  </span>
+                </label>
                 <input
                   id="rq-phone-code"
                   type="text"
                   maxLength={6}
                   className="rq-input"
-                  style={{ letterSpacing: '0.3em', fontSize: '20px', textAlign: 'center' }}
+                  style={{ letterSpacing: '0.35em', fontSize: '22px', textAlign: 'center', fontWeight: 700 }}
                   placeholder="123456"
                   value={code}
-                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                  onChange={(e) => {
+                    const clean = e.target.value.replace(/\D/g, '').slice(0, 6);
+                    setCode(clean);
+                    if (clean.length === 6) {
+                      executeVerifyPhoneOtp(clean);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && code.length === 6) {
+                      e.preventDefault();
+                      handleVerifyPhoneOtp(e);
+                    }
+                  }}
                   autoFocus
+                  required
                 />
               </div>
 

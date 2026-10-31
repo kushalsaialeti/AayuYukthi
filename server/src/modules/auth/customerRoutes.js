@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { validate } from '../../middleware/validate.js';
-import { authLimiter, otpLimiter } from '../../middleware/rateLimits.js';
+import { authLimiter, otpLimiter, refreshLimiter } from '../../middleware/rateLimits.js';
 import { refreshSchema } from './schemas.js';
 import {
   customerSignupSchema, customerLoginSchema, otpRequestSchema, otpVerifySchema, recoveryConfirmSchema,
@@ -33,7 +33,7 @@ export function createCustomerAuthRouter(db) {
     try {
       const result = await verifyCustomerOtp(db, {
         channel: normalizeChannel(req.body), purpose: req.body.purpose, code: req.body.code,
-      });
+      }, { ip: req.ip });
       res.json({ data: result });
     } catch (err) {
       next(err);
@@ -42,7 +42,7 @@ export function createCustomerAuthRouter(db) {
 
   router.post('/login', authLimiter, validate(customerLoginSchema), async (req, res, next) => {
     try {
-      res.json({ data: await customerLogin(db, req.body) });
+      res.json({ data: await customerLogin(db, req.body, { ip: req.ip }) });
     } catch (err) {
       next(err);
     }
@@ -60,7 +60,7 @@ export function createCustomerAuthRouter(db) {
     }
   });
 
-  router.post('/refresh', validate(refreshSchema), async (req, res, next) => {
+  router.post('/refresh', refreshLimiter, validate(refreshSchema), async (req, res, next) => {
     try {
       res.json({ data: await rotateRefresh(db, req.body.refreshToken) });
     } catch (err) {

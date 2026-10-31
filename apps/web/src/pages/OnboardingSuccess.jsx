@@ -49,18 +49,21 @@ export function OnboardingSuccess({ user: propUser, recipient: propRecipient }) 
   useDocumentMeta('Account Activated', 'Your AayuYukthi family care coordination is active.');
 
   useEffect(() => {
-    // If not provided, fetch live user and recipient
+    let active = true;
+    // Contact info is always needed for the helpline box; user/recipient are
+    // only fetched when they were not passed in as props.
+    const tasks = [api.contactInfo().catch(() => null)];
     if (!user || !recipient) {
-      Promise.all([
-        api.me().catch(() => null),
-        api.recipients({ limit: 1 }).catch(() => ({ data: [] })),
-        api.contact().catch(() => null),
-      ]).then(([meData, recData, contactData]) => {
-        if (meData) setUser(meData);
-        if (recData?.data?.[0]) setRecipient(recData.data[0]);
-        if (contactData) setContact(contactData);
-      });
+      tasks.push(api.me().catch(() => null));
+      tasks.push(api.recipients({ limit: 1 }).catch(() => ({ data: [] })));
     }
+    Promise.all(tasks).then(([contactData, meData, recData]) => {
+      if (!active) return;
+      if (contactData) setContact(contactData);
+      if (meData) setUser(meData);
+      if (recData?.data?.[0]) setRecipient(recData.data[0]);
+    });
+    return () => { active = false; };
   }, []);
 
   const userName = user?.full_name ? user.full_name.split(' ')[0] : 'Family Member';
@@ -68,7 +71,7 @@ export function OnboardingSuccess({ user: propUser, recipient: propRecipient }) 
   const recipientAge = calculateAge(recipient?.date_of_birth);
   const recipientAgeText = recipientAge !== null ? `${recipientAge} yrs` : '';
   const avatarSrc = getRecipientAvatar(recipient);
-  const helplinePhone = contact?.phone || '1800-AAYU-CARE';
+  const helplinePhone = contact?.phone || '';
 
   return (
     <main className="os-main">
@@ -166,7 +169,7 @@ export function OnboardingSuccess({ user: propUser, recipient: propRecipient }) 
                   borderRadius: '0.25rem',
                 }}
               >
-                2 min setup
+                Quick setup
               </span>
             </div>
 
@@ -192,7 +195,7 @@ export function OnboardingSuccess({ user: propUser, recipient: propRecipient }) 
                   </div>
                   <h2 className="os-card-title">Ready to visit a hospital?</h2>
                   <p className="os-card-desc">
-                    Request care coordinator accompaniment in under 2 minutes. We arrange bedside
+                    Request care coordinator accompaniment in a few quick steps. We arrange bedside
                     support and queue handling.
                   </p>
                 </div>
@@ -277,7 +280,7 @@ export function OnboardingSuccess({ user: propUser, recipient: propRecipient }) 
             <div className="os-story-img-wrap">
               <img
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3n6VuWzv1dfix_LXWb6Rwb9ZqRk-HTD5XowCwKJLXpOkDNvsUjXSEkPe-rY5olEPjWD4qrHyDIHsuS5vmhKt2rxAOcMWgFLu1lN55Di-pQADXo-Wkx6OAUaPiRS9qITHDo6PIP77FoDp9VdES5cUgJ0sdwoLeWqRVa1IWZ4C_90UHtQ480Zp2znGzviwJ0E7mM_vhrXCVHPa_9UFCsWZl50HqL1L_icr8OSAIXwEnUtGH9lQu9eg"
-                alt="Certified Care Companion"
+                alt="Care Companion"
               />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -304,7 +307,7 @@ export function OnboardingSuccess({ user: propUser, recipient: propRecipient }) 
                     fontWeight: 600,
                   }}
                 >
-                  Certified Care Companions
+                  Care Companions
                 </span>
               </div>
               <h3
@@ -325,8 +328,8 @@ export function OnboardingSuccess({ user: propUser, recipient: propRecipient }) 
                   margin: 0,
                 }}
               >
-                Every coordinator is background-verified, CPR-trained, and skilled in navigating
-                complex medical campus logistics so your family never feels alone.
+                Every coordinator stays close to your family through queues, consultations, and
+                discharge, so no one has to navigate the hospital alone.
               </p>
             </div>
           </div>
@@ -358,77 +361,67 @@ export function OnboardingSuccess({ user: propUser, recipient: propRecipient }) 
             </button>
           </div>
 
-          {/* Bottom Reassurance & Toll-Free Section */}
-          <div className="os-helpline-box">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <div
-                style={{
-                  width: '2.5rem',
-                  height: '2.5rem',
-                  borderRadius: '9999px',
-                  backgroundColor: 'var(--os-secondary-fixed)',
-                  color: 'var(--os-on-secondary-fixed)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
-                  phone_in_talk
-                </span>
-              </div>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--os-text)' }}>
-                    {helplinePhone}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: '11px',
-                      fontWeight: 600,
-                      backgroundColor: 'var(--os-secondary-container)',
-                      color: 'var(--os-on-secondary-container)',
-                      padding: '0.125rem 0.5rem',
-                      borderRadius: '0.25rem',
-                    }}
-                  >
-                    Toll-Free
+          {/* Bottom Reassurance & Helpline Section (rendered only when CMS supplies a real number) */}
+          {helplinePhone && (
+            <div className="os-helpline-box">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div
+                  style={{
+                    width: '2.5rem',
+                    height: '2.5rem',
+                    borderRadius: '9999px',
+                    backgroundColor: 'var(--os-secondary-fixed)',
+                    color: 'var(--os-on-secondary-fixed)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                    phone_in_talk
                   </span>
                 </div>
-                <span style={{ fontSize: '13px', color: 'var(--os-text-variant)' }}>
-                  24/7 Human Helpline &amp; Dispatch Desk
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--os-text)' }}>
+                      {helplinePhone}
+                    </span>
+                  </div>
+                  <span style={{ fontSize: '13px', color: 'var(--os-text-variant)' }}>
+                    Human helpline &amp; dispatch desk
+                  </span>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  textAlign: 'right',
+                  borderLeft: '1px solid rgba(191, 200, 201, 0.3)',
+                  paddingLeft: '1rem',
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: '11px',
+                    color: 'var(--os-outline)',
+                    display: 'block',
+                  }}
+                >
+                  Safe Non-Clinical Healthcare
+                </span>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    color: 'var(--os-text-variant)',
+                    fontWeight: 500,
+                  }}
+                >
+                  Logistics &amp; Accompaniment
                 </span>
               </div>
             </div>
-
-            <div
-              style={{
-                textAlign: 'right',
-                borderLeft: '1px solid rgba(191, 200, 201, 0.3)',
-                paddingLeft: '1rem',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: '11px',
-                  color: 'var(--os-outline)',
-                  display: 'block',
-                }}
-              >
-                Safe Non-Clinical Healthcare
-              </span>
-              <span
-                style={{
-                  fontSize: '11px',
-                  color: 'var(--os-text-variant)',
-                  fontWeight: 500,
-                }}
-              >
-                Logistics &amp; Accompaniment
-              </span>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </main>

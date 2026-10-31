@@ -116,7 +116,7 @@ export function Login() {
     {
       icon: cms['auth.login.feature_2']?.icon || 'badge',
       title: cms['auth.login.feature_2']?.title_en || 'Verified Dedicated Companions',
-      desc: cms['auth.login.feature_2']?.body_en || 'Police-vetted, empathetic coordinators offering bedside presence, wheelchair navigation, and patient advocacy.',
+      desc: cms['auth.login.feature_2']?.body_en || 'Empathetic coordinators offering bedside presence, wheelchair navigation, and patient advocacy.',
     },
     {
       icon: cms['auth.login.feature_3']?.icon || 'folder_special',
@@ -126,12 +126,12 @@ export function Login() {
   ];
 
   const testimonial = {
-    title: 'Our Family Care Guarantee',
-    quote: 'We treat your loved ones with the exact same respect, gentleness, and attentiveness as our own parents. Verified companion, on time, every single visit.',
+    title: 'Our Family Care Promise',
+    quote: 'We treat your loved ones with the same respect, gentleness, and attentiveness as our own parents — a dedicated companion by their side for every visit.',
   };
 
-  const sslText = cms['auth.compliance.ssl']?.body_en || '256-bit SSL Protected';
-  const privacyText = cms['auth.compliance.privacy']?.body_en || 'ISO 27001 Certified Indian Health Data Privacy';
+  const sslText = cms['auth.compliance.ssl']?.body_en || 'Connections encrypted in transit (HTTPS)';
+  const privacyText = cms['auth.compliance.privacy']?.body_en || '';
 
   return (
     <AuthLayout subtitle="Care Portal" returnTo="/">
@@ -221,7 +221,7 @@ export function Login() {
               <div className="ay-form-group">
                 <label className="ay-form-label" htmlFor="user-identity">
                   <span>Email Address</span>
-                  <span className="ay-form-hint">Registered with patient ID</span>
+                  <span className="ay-form-hint">Registered email address</span>
                 </label>
                 <div className="ay-input-wrapper">
                   <div className="ay-input-icon">

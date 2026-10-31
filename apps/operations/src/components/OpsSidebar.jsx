@@ -28,6 +28,7 @@ const NAV_GROUPS = [
     title: 'CMS & Website Copy',
     items: [
       { label: 'Content Blocks', path: '/cms/blocks', icon: 'dashboard_customize' },
+      { label: 'Legal & Privacy Policies', path: '/cms/legal', icon: 'policy', badge: 'Legal' },
       { label: 'Recipient Form CMS', path: '/cms/recipient-form', icon: 'badge' },
       { label: 'Hero Slides', path: '/cms/hero-slides', icon: 'view_carousel' },
       { label: 'Testimonials', path: '/cms/testimonials', icon: 'rate_review' },
@@ -39,6 +40,7 @@ const NAV_GROUPS = [
   {
     title: 'System & Security',
     items: [
+      { label: 'Security Monitor', path: '/security', icon: 'security' },
       { label: 'API Directory', path: '/system/apis', icon: 'api', badge: 'Catalog' },
       { label: 'Analytics', path: '/analytics', icon: 'monitoring' },
       { label: 'Audit Trail', path: '/audit-logs', icon: 'history' },

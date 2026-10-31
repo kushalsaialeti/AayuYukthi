@@ -4,23 +4,24 @@ export function HospitalStandards({ standardsBlocks = {} }) {
   const eyebrow =
     standardsBlocks['hospitals.standards.eyebrow']?.body_en ||
     standardsBlocks['hospitals.standards.eyebrow']?.title_en ||
-    'Inside Partner Campuses';
+    null;
 
   const title =
     standardsBlocks['hospitals.standards.title']?.body_en ||
     standardsBlocks['hospitals.standards.title']?.title_en ||
-    'Built for navigation ease inside complex hospitals.';
+    null;
 
   const body =
     standardsBlocks['hospitals.standards.body']?.body_en ||
     standardsBlocks['hospitals.standards.body']?.title_en ||
-    'AayuYukthi companions are trained in hospital layouts, patient advocacy, and eliminating bureaucratic wait times.';
+    null;
 
   const keys = ['hospitals.standard.1', 'hospitals.standard.2', 'hospitals.standard.3'];
+  // Icons/layout only — no hardcoded outcome stats (e.g. percentage claims).
   const defaultMeta = [
-    { icon: 'map', cls: 'c1', footer: 'Zero confused wandering for families' },
-    { icon: 'receipt_long', cls: 'c2', footer: 'Up to 70% reduction in standing fatigue' },
-    { icon: 'shield_person', cls: 'c3', footer: '100% loyal to patient & caregiver needs' },
+    { icon: 'map', cls: 'c1' },
+    { icon: 'receipt_long', cls: 'c2' },
+    { icon: 'shield_person', cls: 'c3' },
   ];
 
   const standards = keys
@@ -33,7 +34,6 @@ export function HospitalStandards({ standardsBlocks = {} }) {
         body: b.body_en,
         icon: b.icon || meta.icon,
         cls: meta.cls,
-        footer: meta.footer,
       };
     })
     .filter(Boolean);
@@ -45,10 +45,10 @@ export function HospitalStandards({ standardsBlocks = {} }) {
       <div className="pub-container">
         <div className="hsp-standards-head">
           <div>
-            <span className="hsp-standards-eyebrow">{eyebrow}</span>
-            <h2 className="hsp-standards-title">{title}</h2>
+            {eyebrow && <span className="hsp-standards-eyebrow">{eyebrow}</span>}
+            {title && <h2 className="hsp-standards-title">{title}</h2>}
           </div>
-          <p className="hsp-standards-sub">{body}</p>
+          {body && <p className="hsp-standards-sub">{body}</p>}
         </div>
 
         <div className="hsp-standards-grid">
@@ -59,10 +59,6 @@ export function HospitalStandards({ standardsBlocks = {} }) {
               </div>
               <h3 className="hsp-standard-title">{item.title}</h3>
               <p className="hsp-standard-body">{item.body}</p>
-              <div className="hsp-standard-foot">
-                <Icon name="check_circle" size={16} />
-                <span>{item.footer}</span>
-              </div>
             </div>
           ))}
         </div>

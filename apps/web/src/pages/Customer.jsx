@@ -16,6 +16,7 @@ import '../components/dashboard/dashboard.css';
 export const CustomerLayoutContext = React.createContext(false);
 
 export function CustomerLayout() {
+  const { user } = useCustomerAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -65,6 +66,7 @@ export function CustomerLayout() {
           isCollapsed={isCollapsed}
           unreadCount={unreadCount}
           onMenuToggle={handleToggleSidebar}
+          publicId={user?.public_id || ''}
         />
         <main className={`customer-main-shell ${isCollapsed ? 'is-collapsed' : ''}`}>
           <Outlet />
@@ -90,7 +92,7 @@ export function CustomerDashboard() {
 
   const [requests, setRequests] = useState([]);
   const [recipients, setRecipients] = useState([]);
-  const [helplinePhone, setHelplinePhone] = useState('1800-AAYU-CARE');
+  const [helplinePhone, setHelplinePhone] = useState('');
   const [totalRequestsCount, setTotalRequestsCount] = useState(0);
   const [totalRecipientsCount, setTotalRecipientsCount] = useState(0);
   const [loading, setLoading] = useState(true);

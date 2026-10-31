@@ -1,39 +1,37 @@
 import React from 'react';
 
+// Care-desk feature card + quick assistance. All descriptive copy and trust
+// points come from CMS contact blocks; the call action renders only when a
+// real phone number exists in contact settings.
 export function ContactCounselingCard({ contact, blocks }) {
   const safeContact = contact || {};
   const safeBlocks = blocks || {};
-  const directPhone = safeContact.socials?.rapid_phone || safeContact.phone || '1800-AAYU-CARE';
-  const directDigits = directPhone.replace(/[^\d+]/g, '');
+
+  const directPhone = safeContact.socials?.rapid_phone || safeContact.phone || null;
+  const directDigits = directPhone ? directPhone.replace(/[^\d+]/g, '') : null;
 
   const coordinatorImg = safeBlocks['contact.counseling.image_url']?.body_en
     || safeContact.socials?.coordinator_image_url
     || '';
 
-  const deskBadge = safeBlocks['contact.counseling.badge']?.body_en || 'Dedicated Care Team';
-  const deskTitle = safeBlocks['contact.counseling.title']?.body_en || 'Trained Hospital Companions';
-  const guidanceHeading = safeBlocks['contact.counseling.heading']?.body_en || 'Caring, Respectful Support';
-  const guidanceDesc = safeBlocks['contact.counseling.desc']?.body_en
-    || 'Our team is trained in elder care, hospital navigation, and complete patient privacy. When you reach out, you talk directly with real, caring people who understand your family’s needs.';
+  const deskBadge = safeBlocks['contact.counseling.badge']?.body_en || null;
+  const deskTitle = safeBlocks['contact.counseling.title']?.body_en || null;
+  const guidanceHeading = safeBlocks['contact.counseling.heading']?.body_en || null;
+  const guidanceDesc = safeBlocks['contact.counseling.desc']?.body_en || null;
 
-  const defaultTrustPoints = [
-    'Verified backgrounds, police vetted & hospital-badged',
-    'Bilingual fluency (English, Telugu, Hindi, and regional dialects)',
-    'Discreet insurance paperwork & discharge coordination',
-  ];
-
-  let trustPoints = defaultTrustPoints;
+  // Trust points only when the CMS provides them — no invented credentials.
+  let trustPoints = [];
   if (safeBlocks['contact.counseling.points']?.body_en) {
     try {
       const parsed = JSON.parse(safeBlocks['contact.counseling.points'].body_en);
-      if (Array.isArray(parsed) && parsed.length > 0) trustPoints = parsed;
+      if (Array.isArray(parsed)) trustPoints = parsed.filter(Boolean);
     } catch {
       trustPoints = safeBlocks['contact.counseling.points'].body_en.split('\n').filter(Boolean);
     }
   }
 
-  const rapidTitle = safeBlocks['contact.rapid.title']?.body_en || 'Need care in under 3 hours?';
-  const rapidSubtitle = safeBlocks['contact.rapid.subtitle']?.body_en || 'Call our rapid transit coordination hotline directly.';
+  const rapidTitle = safeBlocks['contact.rapid.title']?.body_en || null;
+  const rapidSubtitle = safeBlocks['contact.rapid.subtitle']?.body_en || null;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -88,96 +86,116 @@ export function ContactCounselingCard({ contact, blocks }) {
           )}
 
           <div className="contact-feature-gradient" />
-          <div className="contact-feature-overlay-text">
-            <span style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              padding: '0.25rem 0.65rem',
-              borderRadius: '9999px',
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
-              backdropFilter: 'blur(8px)',
-              fontSize: '0.6875rem',
-              fontWeight: 700,
-              marginBottom: '0.5rem',
-              color: '#ffffff'
-            }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '9999px', backgroundColor: '#34d399' }} />
-              {deskBadge}
-            </span>
-            <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: '#ffffff' }}>
-              {deskTitle}
-            </h3>
-          </div>
+          {(deskBadge || deskTitle) && (
+            <div className="contact-feature-overlay-text">
+              {deskBadge && (
+                <span style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  padding: '0.25rem 0.65rem',
+                  borderRadius: '9999px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  backdropFilter: 'blur(8px)',
+                  fontSize: '0.6875rem',
+                  fontWeight: 700,
+                  marginBottom: '0.5rem',
+                  color: '#ffffff'
+                }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '9999px', backgroundColor: '#34d399' }} />
+                  {deskBadge}
+                </span>
+              )}
+              {deskTitle && (
+                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: '#ffffff' }}>
+                  {deskTitle}
+                </h3>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="contact-feature-body">
-          <div className="contact-counseling-box">
-            <span className="material-symbols-outlined" style={{ fontSize: '22px', color: 'var(--pub-primary-container)', marginTop: '2px' }}>
-              verified
-            </span>
+          {(guidanceHeading || guidanceDesc) && (
+            <div className="contact-counseling-box">
+              <span className="material-symbols-outlined" style={{ fontSize: '22px', color: 'var(--pub-primary-container)', marginTop: '2px' }}>
+                verified
+              </span>
+              <div>
+                {guidanceHeading && (
+                  <h4 style={{ margin: '0 0 0.25rem 0', fontSize: '0.9375rem', fontWeight: 700, color: 'var(--pub-on-surface)' }}>
+                    {guidanceHeading}
+                  </h4>
+                )}
+                {guidanceDesc && (
+                  <p style={{ margin: 0, fontSize: '0.8125rem', color: 'var(--pub-on-variant)', lineHeight: 1.55 }}>
+                    {guidanceDesc}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {trustPoints.length > 0 && (
+            <div className="contact-trust-list">
+              {trustPoints.map((point, idx) => (
+                <div key={idx} className="contact-trust-item">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#059669' }}>check_circle</span>
+                  <span>{point}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Quick Assistance Card — only when a real number is available */}
+      {directPhone && (
+        <div className="contact-rapid-assistance">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
+            <div style={{
+              width: '2.5rem',
+              height: '2.5rem',
+              borderRadius: '9999px',
+              backgroundColor: 'var(--pub-primary-container)',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0
+            }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>compare_arrows</span>
+            </div>
             <div>
-              <h4 style={{ margin: '0 0 0.25rem 0', fontSize: '0.9375rem', fontWeight: 700, color: 'var(--pub-on-surface)' }}>
-                {guidanceHeading}
-              </h4>
-              <p style={{ margin: 0, fontSize: '0.8125rem', color: 'var(--pub-on-variant)', lineHeight: 1.55 }}>
-                {guidanceDesc}
-              </p>
+              {rapidTitle && (
+                <h4 style={{ margin: '0 0 0.15rem 0', fontSize: '0.9375rem', fontWeight: 700, color: 'var(--pub-on-surface)' }}>
+                  {rapidTitle}
+                </h4>
+              )}
+              {rapidSubtitle && (
+                <p style={{ margin: 0, fontSize: '0.8125rem', color: 'var(--pub-on-variant)' }}>
+                  {rapidSubtitle}
+                </p>
+              )}
             </div>
           </div>
-
-          <div className="contact-trust-list">
-            {trustPoints.map((point, idx) => (
-              <div key={idx} className="contact-trust-item">
-                <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#059669' }}>check_circle</span>
-                <span>{point}</span>
-              </div>
-            ))}
-          </div>
+          <a
+            href={`tel:${directDigits}`}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              backgroundColor: 'var(--pub-primary-container)',
+              color: '#ffffff',
+              fontWeight: 600,
+              fontSize: '0.8125rem',
+              textDecoration: 'none',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            Call Direct
+          </a>
         </div>
-      </div>
-
-      {/* Quick Assistance Card */}
-      <div className="contact-rapid-assistance">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
-          <div style={{
-            width: '2.5rem',
-            height: '2.5rem',
-            borderRadius: '9999px',
-            backgroundColor: 'var(--pub-primary-container)',
-            color: '#ffffff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0
-          }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>compare_arrows</span>
-          </div>
-          <div>
-            <h4 style={{ margin: '0 0 0.15rem 0', fontSize: '0.9375rem', fontWeight: 700, color: 'var(--pub-on-surface)' }}>
-              {rapidTitle}
-            </h4>
-            <p style={{ margin: 0, fontSize: '0.8125rem', color: 'var(--pub-on-variant)' }}>
-              {rapidSubtitle}
-            </p>
-          </div>
-        </div>
-        <a
-          href={`tel:${directDigits}`}
-          style={{
-            padding: '0.5rem 1rem',
-            borderRadius: '0.5rem',
-            backgroundColor: 'var(--pub-primary-container)',
-            color: '#ffffff',
-            fontWeight: 600,
-            fontSize: '0.8125rem',
-            textDecoration: 'none',
-            whiteSpace: 'nowrap'
-          }}
-        >
-          Call Direct
-        </a>
-      </div>
+      )}
     </div>
   );
 }

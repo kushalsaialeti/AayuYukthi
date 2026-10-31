@@ -55,8 +55,8 @@ export function AuthTrustPanel({
           </div>
         )}
 
-        {/* Urgent Helpline Box (e.g. for OTP mode) */}
-        {urgentHelp && (
+        {/* Urgent Helpline Box (e.g. for OTP mode) — only when a real contact is provided */}
+        {urgentHelp?.action && (
           <div className="ay-auth-urgent-box">
             <div className="ay-auth-urgent-icon">
               <span className="material-symbols-outlined text-[20px]">{urgentHelp.icon || 'emergency'}</span>
@@ -65,10 +65,16 @@ export function AuthTrustPanel({
               <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--ay-auth-on-secondary-fixed)' }}>
                 {urgentHelp.title || 'Need Urgent Transit Assistance?'}
               </div>
-              <a href={urgentHelp.tel || 'tel:180022982273'} className="ay-auth-urgent-link">
-                <span>{urgentHelp.action || 'Call 1800-AAYU-CARE'}</span>
-                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-              </a>
+              {urgentHelp.tel ? (
+                <a href={urgentHelp.tel} className="ay-auth-urgent-link">
+                  <span>{urgentHelp.action}</span>
+                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                </a>
+              ) : (
+                <span className="ay-auth-urgent-link">
+                  <span>{urgentHelp.action}</span>
+                </span>
+              )}
             </div>
           </div>
         )}
@@ -93,7 +99,7 @@ export function AuthTrustPanel({
       ) : null}
 
       {/* Support & Helpline Pill */}
-      {socialProof && (
+      {(socialProof?.title || socialProof?.cities) && (
         <div className="ay-auth-social-proof">
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.15)', display: 'grid', placeItems: 'center' }}>
@@ -103,9 +109,11 @@ export function AuthTrustPanel({
               <div style={{ fontSize: '13.5px', fontWeight: 700, lineHeight: 1.2 }}>
                 {socialProof.title || 'Need assistance booking?'}
               </div>
-              <div style={{ fontSize: '12px', opacity: 0.85, marginTop: '2px' }}>
-                {socialProof.cities || 'Toll-free Family Helpline: 1800-AAYU-CARE (9 AM - 8 PM)'}
-              </div>
+              {socialProof.cities && (
+                <div style={{ fontSize: '12px', opacity: 0.85, marginTop: '2px' }}>
+                  {socialProof.cities}
+                </div>
+              )}
             </div>
           </div>
         </div>

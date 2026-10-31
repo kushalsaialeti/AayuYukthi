@@ -2,9 +2,10 @@ import React from 'react';
 
 export function CustomerAdvisoryBanner({ cmsBlocks = {} }) {
   const title = cmsBlocks['customer.advisory.title']?.body_en || 'Need urgent modifications or companion adjustments?';
-  const body = cmsBlocks['customer.advisory.body']?.body_en || 'Changes are accommodated up to 4 hours prior to scheduled appointment with zero penalty.';
-  const helpline = cmsBlocks['customer.advisory.helpline']?.body_en || '1800-AAYU-CARE';
-  const tel = cmsBlocks['customer.advisory.tel']?.body_en || 'tel:180022982273';
+  const body = cmsBlocks['customer.advisory.body']?.body_en || 'Send us a message and our coordination team will help with changes to your booking.';
+  const helpline = cmsBlocks['customer.advisory.helpline']?.body_en || '';
+  const tel = cmsBlocks['customer.advisory.tel']?.body_en || '';
+  const showCall = Boolean(helpline && tel);
 
   return (
     <div style={{
@@ -49,20 +50,22 @@ export function CustomerAdvisoryBanner({ cmsBlocks = {} }) {
           </span>
         </div>
 
-        <a
-          href={tel}
-          className="cust-btn-secondary"
-          style={{
-            whiteSpace: 'nowrap',
-            color: 'var(--cust-primary)',
-            backgroundColor: '#ffffff',
-            fontWeight: 700,
-            textDecoration: 'none'
-          }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>call</span>
-          <span>{helpline}</span>
-        </a>
+        {showCall && (
+          <a
+            href={tel}
+            className="cust-btn-secondary"
+            style={{
+              whiteSpace: 'nowrap',
+              color: 'var(--cust-primary)',
+              backgroundColor: '#ffffff',
+              fontWeight: 700,
+              textDecoration: 'none'
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>call</span>
+            <span>{helpline}</span>
+          </a>
+        )}
       </div>
     </div>
   );

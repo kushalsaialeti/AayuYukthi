@@ -31,11 +31,11 @@ function formatSchedule(dateString) {
 
 export function DashboardActiveVisitHero({
   activeVisit,
-  helplinePhone = '1800-AAYU-CARE',
+  helplinePhone = '',
 }) {
   const cleanPhone = typeof helplinePhone === 'object'
-    ? (helplinePhone?.body_en || helplinePhone?.title_en || '1800-AAYU-CARE')
-    : String(helplinePhone || '1800-AAYU-CARE');
+    ? (helplinePhone?.body_en || helplinePhone?.title_en || '')
+    : String(helplinePhone || '');
 
   if (!activeVisit) {
     // No active visits — show simple CTA card
@@ -228,15 +228,17 @@ export function DashboardActiveVisitHero({
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', paddingTop: '0.5rem' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-              <a
-                href={`tel:${cleanPhone.replace(/[^0-9]/g, '') || '1800229822'}`}
-                className="cust-btn-secondary"
-                style={{ fontSize: '0.8125rem', padding: '0.5rem', gap: '0.25rem' }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>call</span>
-                <span>Call</span>
-              </a>
+            <div style={{ display: 'grid', gridTemplateColumns: cleanPhone ? '1fr 1fr' : '1fr', gap: '0.5rem' }}>
+              {cleanPhone && (
+                <a
+                  href={`tel:${cleanPhone.replace(/[^0-9]/g, '')}`}
+                  className="cust-btn-secondary"
+                  style={{ fontSize: '0.8125rem', padding: '0.5rem', gap: '0.25rem' }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>call</span>
+                  <span>Call</span>
+                </a>
+              )}
               <Link
                 to="/app/support"
                 className="cust-btn-secondary"

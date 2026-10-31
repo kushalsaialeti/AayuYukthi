@@ -9,11 +9,23 @@ import { requestIdMiddleware } from './middleware/requestId.js';
 import { notFoundHandler } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { createV1Router } from './routes/v1/index.js';
+import { defaultDb } from './database/query.js';
+import { securityMonitor, setLimiterSink } from './security/middleware.js';
+import { recordSecurityEvent } from './security/events.js';
+import { cachePublic } from './utils/cache.js';
+
+// Public, CMS-driven GET reads are cacheable: 60s browser/CDN freshness absorbs
+// repeat traffic so the database only sees fresh visitors. Handlers may override.
+const PUBLIC_READ_RE = /^\/(api\/v1\/)?(services|hospitals|content|contact|media)(\/|$)/;
 
 export function createApp({ db } = {}) {
   const app = express();
+  const dbx = db ?? defaultDb;
   app.disable('x-powered-by');
   app.set('trust proxy', 1);
+
+  // Escalation target for rate-limit blocks (per-app instance, test-safe).
+  setLimiterSink((event) => { recordSecurityEvent(dbx, event); });
 
   app.use(requestIdMiddleware);
   app.use(pinoHttp({
@@ -59,16 +71,31 @@ export function createApp({ db } = {}) {
         return callback(null, true);
       }
 
-      // Automatically allow all Vercel deployments (*.vercel.app) and local development
+      // Automatically allow all Vercel deployments (*.vercel.app) ONLY outside
+      // production — in production any stranger's Vercel app is an attacker
+      // origin and must not read credentialed responses.
       if (
-        /^https:\/\/[a-zA-Z0-9_\-.]+\.vercel\.app$/.test(cleanOrigin) ||
+        /^https:\/\/[a-zA-Z0-9_\-.]+\.vercel\.app$/.test(cleanOrigin) && !env.isProd
+      ) {
+        return callback(null, true);
+      }
+      if (!env.isProd && (
         /^http:\/\/localhost(:\d+)?$/.test(cleanOrigin) ||
         /^http:\/\/127\.0\.0\.1(:\d+)?$/.test(cleanOrigin)
-      ) {
+      )) {
         return callback(null, true);
       }
 
       logger.warn({ origin: cleanOrigin, allowedOrigins }, 'CORS origin blocked');
+      // origin callback has no req in scope — record what we know (the origin).
+      recordSecurityEvent(dbx, {
+        eventType: 'CORS_BLOCKED',
+        severity: 'medium',
+        method: 'OPTIONS/GET',
+        path: null,
+        detail: { origin: cleanOrigin },
+        requestId: null,
+      });
       return callback(null, false);
     },
     credentials: true,
@@ -80,10 +107,33 @@ export function createApp({ db } = {}) {
 
   app.use(cors(corsOptions));
   app.options('*', cors(corsOptions));
-  app.use(express.json({ limit: '20mb' }));
-  app.use(express.urlencoded({ extended: false, limit: '20mb' }));
 
-  app.use('/api/', apiLimiter);
+  // Body limits: 2mb everywhere (every JSON API), 20mb ONLY for the authorized
+  // ops image-upload route that accepts base64 data URIs. A 20mb global limit
+  // would be a trivial memory-exhaustion vector.
+  const jsonSmall = express.json({ limit: '2mb' });
+  const jsonLarge = express.json({ limit: '20mb' });
+  app.use((req, res, next) => {
+    const path = (req.originalUrl ?? '').split('?')[0];
+    if (path.endsWith('/ops/media/upload')) return jsonLarge(req, res, next);
+    return jsonSmall(req, res, next);
+  });
+  app.use(express.urlencoded({ extended: false, limit: '1mb' }));
+
+  // Attack-signature monitor: after body parsing (bodies must be scannable),
+  // before routes (blocked probes never reach handlers).
+  app.use(securityMonitor(dbx));
+
+  // Global limiter: the v1 router is mounted at /api/v1 AND at root, so the
+  // limiter must sit at the app level — mounting it only on /api/ let every
+  // root-path call (e.g. /content/faqs) bypass rate limiting entirely.
+  app.use(apiLimiter);
+
+  // Cache defaults for public CMS reads (handlers may override the TTL).
+  app.use((req, res, next) => {
+    if (req.method === 'GET' && PUBLIC_READ_RE.test(req.path)) cachePublic(res);
+    next();
+  });
 
   const v1Router = createV1Router(db);
   app.use('/api/v1', v1Router);

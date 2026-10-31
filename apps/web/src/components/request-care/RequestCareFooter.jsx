@@ -1,10 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-export function RequestCareFooter({ helplinePhone = '1800-AAYU-CARE' }) {
+export function RequestCareFooter({ helplinePhone = '' }) {
   const cleanHelpline = typeof helplinePhone === 'object'
-    ? (helplinePhone.body_en || helplinePhone.title_en || '1800-AAYU-CARE')
-    : String(helplinePhone || '1800-AAYU-CARE');
+    ? (helplinePhone.body_en || helplinePhone.title_en || '')
+    : String(helplinePhone || '');
+  const telHref = cleanHelpline.replace(/[^0-9]/g, '');
 
   return (
     <footer className="rc-footer">
@@ -24,12 +25,14 @@ export function RequestCareFooter({ helplinePhone = '1800-AAYU-CARE' }) {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.75rem' }}>
           <span>© {new Date().getFullYear()} AayuYukthi Care Network</span>
-          <a
-            href={`tel:${cleanHelpline.replace(/[^0-9]/g, '') || '1800229822'}`}
-            style={{ color: 'var(--cust-on-surface-variant)', textDecoration: 'none' }}
-          >
-            Toll-Free Assistance
-          </a>
+          {telHref && (
+            <a
+              href={`tel:${telHref}`}
+              style={{ color: 'var(--cust-on-surface-variant)', textDecoration: 'none' }}
+            >
+              Support Line
+            </a>
+          )}
           <Link
             to="/contact"
             style={{ color: 'var(--cust-on-surface-variant)', textDecoration: 'none' }}

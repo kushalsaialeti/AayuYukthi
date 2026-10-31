@@ -2,12 +2,18 @@ import { Link } from 'react-router-dom';
 import { Icon } from '../public/Icon.jsx';
 
 export function HospitalHero({ heroBlocks = {}, t = {} }) {
-  const eyebrow = heroBlocks['hospitals.hero.eyebrow']?.body_en || heroBlocks['hospitals.hero.eyebrow']?.title_en || 'BHIMAVARAM NETWORK • ACCREDITED HOSPITALS';
-  const title = heroBlocks['hospitals.hero.title']?.body_en || heroBlocks['hospitals.hero.title']?.title_en || 'Hospitals supported by AayuYukthi in Bhimavaram.';
-  const body = heroBlocks['hospitals.hero.body']?.body_en || heroBlocks['hospitals.hero.body']?.title_en || 'Explore leading healthcare centers across Bhimavaram and surrounding areas where our verified companions provide on-ground coordination and navigational relief.';
+  // CMS blocks only — no hardcoded city/coverage/verification claims.
+  const eyebrow =
+    heroBlocks['hospitals.hero.eyebrow']?.body_en || heroBlocks['hospitals.hero.eyebrow']?.title_en || null;
+  const title =
+    heroBlocks['hospitals.hero.title']?.body_en || heroBlocks['hospitals.hero.title']?.title_en || null;
+  const body =
+    heroBlocks['hospitals.hero.body']?.body_en || heroBlocks['hospitals.hero.body']?.title_en || null;
 
-  const pill1 = heroBlocks['hospitals.hero.pill_1']?.body_en || heroBlocks['hospitals.hero.pill_1']?.title_en || '100% Verified Multi-Wing Campus Coverage';
-  const pill2 = heroBlocks['hospitals.hero.pill_2']?.body_en || heroBlocks['hospitals.hero.pill_2']?.title_en || 'Care coordination & logistics service — independent of hospital administration';
+  const pill1 =
+    heroBlocks['hospitals.hero.pill_1']?.body_en || heroBlocks['hospitals.hero.pill_1']?.title_en || null;
+  const pill2 =
+    heroBlocks['hospitals.hero.pill_2']?.body_en || heroBlocks['hospitals.hero.pill_2']?.title_en || null;
 
   const renderTitle = () => {
     if (title.includes('AayuYukthi')) {
@@ -46,25 +52,33 @@ export function HospitalHero({ heroBlocks = {}, t = {} }) {
             <div className="hsp-hero-glow-2" aria-hidden="true" />
 
             <div className="hsp-hero-content">
-              <div className="hsp-hero-tag">
-                <span className="hsp-hero-pulse" />
-                {eyebrow}
-              </div>
-
-              {renderTitle()}
-
-              <p className="hsp-hero-desc">{body}</p>
-
-              <div className="hsp-hero-badges">
-                <div className="hsp-trust-pill">
-                  <Icon name="verified" size={18} className="text-secondary" />
-                  <span>{pill1}</span>
+              {eyebrow && (
+                <div className="hsp-hero-tag">
+                  <span className="hsp-hero-pulse" />
+                  {eyebrow}
                 </div>
-                <div className="hsp-trust-pill">
-                  <Icon name="info" size={18} className="text-tertiary" />
-                  <span>{pill2}</span>
+              )}
+
+              {title && renderTitle()}
+
+              {body && <p className="hsp-hero-desc">{body}</p>}
+
+              {(pill1 || pill2) && (
+                <div className="hsp-hero-badges">
+                  {pill1 && (
+                    <div className="hsp-trust-pill">
+                      <Icon name="verified" size={18} className="text-secondary" />
+                      <span>{pill1}</span>
+                    </div>
+                  )}
+                  {pill2 && (
+                    <div className="hsp-trust-pill">
+                      <Icon name="info" size={18} className="text-tertiary" />
+                      <span>{pill2}</span>
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>

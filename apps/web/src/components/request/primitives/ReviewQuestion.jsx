@@ -13,7 +13,7 @@ export function ReviewQuestion({
     ? serviceTitles.join(', ')
     : (serviceTitle || 'Not selected');
 
-  const eyebrow = cmsConfig.eyebrow || 'Step 7 of 7 • Review & Verification';
+  const eyebrow = cmsConfig.eyebrow || 'Step 6 of 6 • Review & Verification';
   const title = cmsConfig.title || 'Review your journey details';
   const desc = cmsConfig.desc ||
     'Please confirm all details before submitting. You can click Edit on any section to make changes.';
@@ -40,13 +40,6 @@ export function ReviewQuestion({
     },
     {
       step: 4,
-      label: 'Visit Purpose & Directives',
-      value: draft.appointmentType || 'Consultation & Accompaniment',
-      sub: draft.additionalRequirements ? `Directives: ${draft.additionalRequirements}` : null,
-      icon: 'edit_note',
-    },
-    {
-      step: 5,
       label: 'Date & Schedule',
       value: draft.appointmentDate
         ? new Date(draft.appointmentDate).toLocaleDateString('en-IN', {
@@ -54,17 +47,17 @@ export function ReviewQuestion({
             year: 'numeric',
             month: 'short',
             day: 'numeric',
-          })
+          }) + (draft.appointmentTime ? ` at ${draft.appointmentTime.slice(0, 5)}` : '')
         : 'Date pending',
-      sub: draft.timeSlot || 'Standard Slot',
+      sub: draft.timeSlot || 'Standard Arrival Slot',
       icon: 'calendar_month',
     },
     {
-      step: 6,
-      label: 'Transit, Updates & Consent',
-      value: draft.pickupRequired ? 'Doorstep Transit Required' : 'Direct Hospital Rendezvous',
-      sub: `${draft.pickupRequired && draft.pickupAddress ? draft.pickupAddress + ' • ' : ''}${draft.updatePhone ? 'Updates: ' + draft.updatePhone + ' • ' : ''}Consent: Accepted`,
-      icon: 'verified_user',
+      step: 5,
+      label: 'Doorstep Pickup & Care Consent',
+      value: 'Doorstep Pickup (20 mins prior to appointment)',
+      sub: `${draft.pickupAddress ? draft.pickupAddress + ' • ' : ''}${draft.updatePhone ? 'WhatsApp: ' + draft.updatePhone + ' • ' : ''}Consent: Accepted`,
+      icon: 'directions_car',
     },
   ];
 

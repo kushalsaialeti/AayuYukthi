@@ -16,7 +16,7 @@ export function FamilyCommunication({
     {
       icon: 'support_agent',
       title: 'Direct Phone Access to Companion',
-      desc: 'Call or message the dedicated companion badge holder directly at any moment during the hospital visit.',
+      desc: 'Call or message your companion directly during the hospital visit.',
     },
     {
       icon: 'description',

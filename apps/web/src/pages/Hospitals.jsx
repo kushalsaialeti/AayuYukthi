@@ -353,9 +353,9 @@ export function HospitalDetail({ t, locale }) {
   const linkedItems = useMemo(() => {
     const list = hospital
       ? [
-          { entity_type: 'hospitals', entity_id: hospital.id, field: 'name_en' },
-          { entity_type: 'hospitals', entity_id: hospital.id, field: 'description_en' },
-        ]
+        { entity_type: 'hospitals', entity_id: hospital.id, field: 'name_en' },
+        { entity_type: 'hospitals', entity_id: hospital.id, field: 'description_en' },
+      ]
       : [];
     for (const s of services) list.push({ entity_type: 'services', entity_id: s.id, field: 'title_en' });
     return list;
@@ -383,7 +383,7 @@ export function HospitalDetail({ t, locale }) {
       .then((res) => {
         setNearbyHospitals(res?.data || []);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [slug]);
 
   if (error) {

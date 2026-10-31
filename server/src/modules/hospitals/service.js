@@ -16,6 +16,13 @@ const FIELDS = [
 ];
 const COLUMNS = FIELDS.join(', ');
 
+// List/card surfaces never render the heavy JSONB guides — selecting them for
+// every list row was pure payload bloat (audit finding). Detail endpoints
+// still use full COLUMNS.
+const HEAVY_DETAIL_ONLY = ['zones', 'meeting_points', 'specialized_services', 'departments_en', 'checklist_en', 'faqs', 'station_lead', 'campus_guide_en'];
+const LIST_FIELDS = FIELDS.filter((f) => !HEAVY_DETAIL_ONLY.includes(f));
+const LIST_COLUMNS = LIST_FIELDS.map((c) => `h.${c}`).join(', ');
+
 export function toHospitalDto(row, serviceIds = []) {
   return { ...pick(row, FIELDS), service_ids: serviceIds };
 }
@@ -43,10 +50,15 @@ async function loadServiceIds(db, hospitalId) {
 }
 
 async function replaceServiceLinks(db, hospitalId, serviceIds) {
+  const ids = (serviceIds ?? []).filter(Boolean);
   await db.query('DELETE FROM hospital_services WHERE hospital_id = $1', [hospitalId]);
-  for (const sid of serviceIds ?? []) {
-    await db.query('INSERT INTO hospital_services (hospital_id, service_id) VALUES ($1, $2) ON CONFLICT DO NOTHING', [hospitalId, sid]);
-  }
+  if (!ids.length) return;
+  // One statement instead of one INSERT per id (was a write-loop N+1).
+  await db.query(
+    `INSERT INTO hospital_services (hospital_id, service_id)
+     SELECT $1, unnest($2::uuid[]) ON CONFLICT DO NOTHING`,
+    [hospitalId, ids],
+  );
 }
 
 export async function listHospitals(db, { page, limit, status, city, service_id, q, publishedOnly = false }) {
@@ -79,7 +91,7 @@ export async function listHospitals(db, { page, limit, status, city, service_id,
   const total = (await db.query(`SELECT COUNT(*)::int AS count FROM hospitals h ${clause}`, params)).rows[0].count;
   params.push(limit, (page - 1) * limit);
   const { rows } = await db.query(
-    `SELECT ${COLUMNS.split(', ').map((c) => `h.${c}`).join(', ')} FROM hospitals h ${clause}
+    `SELECT ${LIST_COLUMNS} FROM hospitals h ${clause}
      ORDER BY h.name_en ASC LIMIT $${params.length - 1} OFFSET $${params.length}`,
     params,
   );

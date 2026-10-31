@@ -25,9 +25,10 @@ export function HospitalCard({
   const description = tx('hospitals', id, 'description_en', hospital.description_en);
 
   const locationText = getLocationDisplay(address_en, city, state);
-  const highlightBadge = campus_highlight_en || 'Coordination Active • 15m Lobby SLA';
-  const waitInfoText = wait_info_en || getDefaultWaitInfo(slug, city);
-  const serviceTags = features_en.length > 0 ? features_en : getDefaultFeatures(slug);
+  // Only CMS-provided fields render — no invented SLA/wait-time telemetry.
+  const highlightBadge = campus_highlight_en || null;
+  const waitInfoText = wait_info_en || null;
+  const serviceTags = features_en.length > 0 ? features_en : [];
 
   return (
     <article className={`hsp-card ${viewMode === 'list' ? 'list-card' : ''}`}>
@@ -36,17 +37,21 @@ export function HospitalCard({
         <HospitalImage hospital={hospital} alt={hospital.name_en} />
         <div className="hsp-card-gradient" />
 
-        {/* Coordination SLA Badge */}
-        <div className="hsp-card-badge">
-          <span className="hsp-hero-pulse" style={{ width: 6, height: 6 }} />
-          <span>{highlightBadge}</span>
-        </div>
+        {/* Coordination Badge (only when CMS provides one) */}
+        {highlightBadge && (
+          <div className="hsp-card-badge">
+            <span className="hsp-hero-pulse" style={{ width: 6, height: 6 }} />
+            <span>{highlightBadge}</span>
+          </div>
+        )}
 
         {/* City / Locality Pin Overlay */}
-        <div className="hsp-card-location-pin">
-          <Icon name="location_on" size={16} />
-          <span>{locationText}</span>
-        </div>
+        {locationText && (
+          <div className="hsp-card-location-pin">
+            <Icon name="location_on" size={16} />
+            <span>{locationText}</span>
+          </div>
+        )}
       </div>
 
       {/* Card Content Body */}
@@ -56,20 +61,24 @@ export function HospitalCard({
           <p className="hsp-card-desc">{description}</p>
         </div>
 
-        {/* Wait Time Telemetry Box */}
-        <div className="hsp-telemetry-box">
-          <Icon name="hail" size={17} className="text-primary" />
-          <span>{waitInfoText}</span>
-        </div>
+        {/* Wait Time Info (only when CMS provides it) */}
+        {waitInfoText && (
+          <div className="hsp-telemetry-box">
+            <Icon name="hail" size={17} className="text-primary" />
+            <span>{waitInfoText}</span>
+          </div>
+        )}
 
         {/* Campus Service Badges */}
-        <div className="hsp-service-tags">
-          {serviceTags.map((tag, i) => (
-            <span key={i} className="hsp-service-tag">
-              {tag}
-            </span>
-          ))}
-        </div>
+        {serviceTags.length > 0 && (
+          <div className="hsp-service-tags">
+            {serviceTags.map((tag, i) => (
+              <span key={i} className="hsp-service-tag">
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* Actions Row */}
         <div className="hsp-card-actions">
@@ -78,11 +87,11 @@ export function HospitalCard({
             <Icon name="chevron_right" size={16} />
           </Link>
           <Link
-            to={`/request-care?hospital=${encodeURIComponent(slug)}`}
+            to={`/request-care?hospital_id=${encodeURIComponent(id || slug)}`}
             className="hsp-btn-request"
           >
-            <Icon name="assignment_add" size={16} />
-            <span>Request Care</span>
+            <Icon name="calendar_month" size={16} />
+            <span>Book Appointment</span>
           </Link>
         </div>
       </div>
@@ -97,19 +106,5 @@ function getLocationDisplay(address, city, state) {
       return `${parts[0].trim()}, ${city || state}`;
     }
   }
-  return [city, state].filter(Boolean).join(', ') || 'Metro Campus';
-}
-
-function getDefaultWaitInfo(slug, city) {
-  if (slug === 'apollo-health-city') return 'Avg Coordinator Wait: 0 mins (Dedicated Gate 2 Desk)';
-  if (slug === 'manipal-hospital-old-airport-road') return 'Avg Coordinator Wait: 0 mins (Main Atrium Meetup)';
-  if (slug === 'fortis-memorial-research-institute') return 'Avg Coordinator Wait: 0 mins (Tower A Lobby)';
-  if (slug === 'max-super-speciality-saket') return 'Avg Coordinator Wait: 0 mins (East Block Reception)';
-  if (slug === 'aster-cmi-hospital') return 'Avg Coordinator Wait: 0 mins (Ground Lobby Desk)';
-  if (slug === 'narayana-health-city') return 'Avg Coordinator Wait: 0 mins (Mazumdar Shaw Concourse)';
-  return `Avg Coordinator Wait: 0 mins (${city || 'Main'} Lobby Desk)`;
-}
-
-function getDefaultFeatures() {
-  return ['Companion Escort', 'Wheelchair Logistics', 'OPD Navigation', 'Diagnostics Flow'];
+  return [city, state].filter(Boolean).join(', ') || null;
 }

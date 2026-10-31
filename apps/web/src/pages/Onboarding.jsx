@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { api, tokenStore } from '../api.js';
 import { useCustomerAuth } from '../auth.jsx';
-import { useDocumentMeta, Loading, LoadError, Empty } from '../components/layout.jsx';
+import { useDocumentMeta, Loading, LoadError } from '../components/layout.jsx';
 import { OnboardingSuccess } from './OnboardingSuccess.jsx';
 export { OnboardingSuccess };
 

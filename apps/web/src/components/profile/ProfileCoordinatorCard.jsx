@@ -7,7 +7,8 @@ export function ProfileCoordinatorCard({ cmsBlocks = {} }) {
   const rating = cmsBlocks['profile.coordinator.rating']?.body_en || null;
   const bio = cmsBlocks['profile.coordinator.bio']?.body_en ||
     'Our dedicated operations desk coordinates pre-transit logistics, hospital rendezvous check-ins, and OPD queue management.';
-  const phone = cmsBlocks['profile.coordinator.phone']?.body_en || '1800-AAYU-CARE';
+  const phone = cmsBlocks['profile.coordinator.phone']?.body_en || '';
+  const telHref = String(phone).replace(/[^0-9]/g, '');
 
   return (
     <div className="profile-section-card">
@@ -82,8 +83,9 @@ export function ProfileCoordinatorCard({ cmsBlocks = {} }) {
           <span>Direct Chat</span>
         </Link>
 
+        {telHref ? (
         <a
-          href={`tel:${phone.replace(/[^0-9]/g, '') || '1800229822'}`}
+          href={`tel:${telHref}`}
           className="cust-btn-primary"
           style={{
             padding: '0.5rem',
@@ -96,6 +98,7 @@ export function ProfileCoordinatorCard({ cmsBlocks = {} }) {
           <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>call</span>
           <span>Call Concierge</span>
         </a>
+        ) : null}
       </div>
     </div>
   );

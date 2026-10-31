@@ -53,7 +53,6 @@ function makeEntity({ table, dtoFields, auditPrefix, orderBy, publishedWhere = n
 
   async function create(db, actor, input, columnNames) {
     clearCache(`${table}:`);
-    clearCache('home_bundle');
     const cols = columnNames.filter((c) => input[c] !== undefined);
     const placeholders = cols.map((_, i) => `$${i + 1}`).join(',');
     const { rows } = await db.query(
@@ -66,7 +65,6 @@ function makeEntity({ table, dtoFields, auditPrefix, orderBy, publishedWhere = n
 
   async function update(db, actor, id, input) {
     clearCache(`${table}:`);
-    clearCache('home_bundle');
     await get(db, id);
     const cols = Object.keys(input);
     if (cols.length === 0) return get(db, id);
@@ -82,7 +80,6 @@ function makeEntity({ table, dtoFields, auditPrefix, orderBy, publishedWhere = n
 
   async function remove(db, actor, id) {
     clearCache(`${table}:`);
-    clearCache('home_bundle');
     await get(db, id);
     await db.query(`DELETE FROM ${table} WHERE id = $1`, [id]);
     await recordAudit(db, { ...actor, action: `${auditPrefix}_DELETED`, entityType: table, entityId: id, metadata: {} });
@@ -124,7 +121,7 @@ export const testimonials = makeEntity({
 const BLOCK_FIELDS = ['key', 'title_en', 'body_en', 'status', 'icon', 'created_at', 'updated_at'];
 
 export async function listContentBlocks(db) {
-  const { rows } = await db.query(`SELECT ${BLOCK_FIELDS.join(',')} FROM content_blocks ORDER BY key ASC`);
+  const { rows } = await db.query(`SELECT ${BLOCK_FIELDS.join(',')} FROM content_blocks ORDER BY key ASC LIMIT 500`);
   return rows.map((r) => pick(r, BLOCK_FIELDS));
 }
 

@@ -20,7 +20,7 @@ export function AboutStory({ cms = {} }) {
 
   const body3 =
     cms['about.story.body3'] ||
-    'AayuYukthi steps in as trusted, family-like support on the ground. We are not doctors or clinical nurses, but trained, background-verified care companions. We arrange a clean wheelchair, stand in token lines, stay beside your parent during doctor consults, collect medicines, and send clear updates back to you at home.';
+    'AayuYukthi steps in as family-like support on the ground. We are not doctors or clinical nurses — we are care companions who arrange a clean wheelchair, stand in token lines, stay beside your parent during doctor consults, collect medicines, and send clear updates back to you at home.';
 
   const steps = [
     { num: '01', title: 'Gate Meetup', desc: 'Doorstep greeting with a clean, smooth wheelchair ready.' },
@@ -82,10 +82,6 @@ export function AboutStory({ cms = {} }) {
               </div>
 
               <div className="ay-about-cert-list">
-                <div className="ay-about-cert-item">
-                  <span className="material-symbols-outlined">shield</span>
-                  <span>100% background-verified &amp; identity vetted companions</span>
-                </div>
                 <div className="ay-about-cert-item">
                   <span className="material-symbols-outlined">elderly</span>
                   <span>Trained in gentle senior mobility &amp; clean wheelchair transit</span>

@@ -94,7 +94,9 @@ export async function sendOtpEmail({ email, code, purpose }) {
     });
     if (res.error) {
       logger.error({ error: res.error, email, purpose }, '[RESEND] Resend API error');
-      if (res.error.statusCode === 403 || res.error.message?.includes('testing emails')) {
+      // Setup guidance (and the dev OTP) are development conveniences only —
+      // printing OTPs or personal addresses into production logs is a leak.
+      if (!env.isProd && (res.error.statusCode === 403 || res.error.message?.includes('testing emails'))) {
         console.warn(
           `\n======================================================\n` +
           `[RESEND RESTRICTION - DOMAIN VERIFICATION REQUIRED]\n` +
@@ -114,6 +116,29 @@ export async function sendOtpEmail({ email, code, purpose }) {
     return { ok: true, id: res.data?.id };
   } catch (err) {
     logger.error({ err: err.message, email, purpose }, '[RESEND] Unexpected error dispatching OTP email');
+    return { ok: false, error: err.message };
+  }
+}
+
+// Generic plain-text sender (security alerts, admin notifications) reusing
+// the OTP transport. Test runs are no-ops; failures return {ok:false} and
+// never throw — callers always have a log/db fallback.
+export async function sendPlainEmail({ to, subject, text }) {
+  if (!to || !to.includes('@')) return { ok: false, reason: 'INVALID_EMAIL' };
+  if (env.isTest) return { ok: true, id: 'test-email-dispatched' };
+  const client = getResendClient();
+  if (!client) return { ok: false, reason: 'MISSING_API_KEY' };
+  const from = process.env.RESEND_FROM_EMAIL || env.RESEND_FROM_EMAIL || 'AayuYukthi Care <onboarding@resend.dev>';
+  try {
+    const res = await client.emails.send({ from, to, subject, text });
+    if (res.error) {
+      logger.error({ error: res.error, to, subject }, '[RESEND] Alert email failed');
+      return { ok: false, error: res.error };
+    }
+    logger.info({ id: res.data?.id, to, subject }, '[RESEND] Alert email dispatched');
+    return { ok: true, id: res.data?.id };
+  } catch (err) {
+    logger.error({ err: err.message, to, subject }, '[RESEND] Unexpected error dispatching alert email');
     return { ok: false, error: err.message };
   }
 }

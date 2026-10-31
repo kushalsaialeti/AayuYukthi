@@ -13,6 +13,11 @@ async function request(path, options = {}) {
   });
   const body = await res.json().catch(() => ({}));
   if (!res.ok) {
+    // Security layer answers (attack block / rate limit) carry a joker
+    // message — surface it as a global popup instead of an inline error.
+    if (body.code === 'SECURITY_BLOCKED' || body.code === 'RATE_LIMITED') {
+      emitSecurityBlock(body);
+    }
     const err = new Error(body.message ?? 'Request failed');
     err.code = body.code;
     err.requestId = body.requestId;
@@ -21,6 +26,11 @@ async function request(path, options = {}) {
     throw err;
   }
   return body;
+}
+
+function emitSecurityBlock(body) {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent('ay:security-block', { detail: body }));
 }
 
 const reqCache = new Map();
@@ -225,6 +235,9 @@ async function authed(path, options = {}) {
 
   const body = await res.json().catch(() => ({}));
   if (!res.ok) {
+    if (body.code === 'SECURITY_BLOCKED' || body.code === 'RATE_LIMITED') {
+      emitSecurityBlock(body);
+    }
     if (res.status === 401) {
       tokenStore.clear();
       try {
@@ -245,8 +258,6 @@ async function authed(path, options = {}) {
 }
 
 export const api = {
-  info: () => request('/').then((b) => b.data),
-  health: () => request('/health').then((b) => b.data),
   me: () => authed('/account/me').then((b) => b.data),
   updateMe: (body) => authed('/account/me', { method: 'PATCH', body: JSON.stringify(body) }).then((b) => b.data),
   recipients: (params) => authed(`/account/recipients${qs(params)}`),
@@ -273,7 +284,10 @@ export const api = {
   authedTicketCreate: (body) => authed('/support/tickets', { method: 'POST', body: JSON.stringify(body) }).then((b) => b.data),
   authedTicketReply: (id, message) => authed(`/support/tickets/${id}/messages`, { method: 'POST', body: JSON.stringify({ message }) }).then((b) => b.data),
   authedTicketClose: (id) => authed(`/support/tickets/${id}/close`, { method: 'POST' }).then((b) => b.data),
-  home: () => cachedGet('/content/home').then((b) => b.data),
+  // Granular content reads: one endpoint per resource — a page fetches only
+  // what it renders; the old combined homepage bundle has been split apart.
+  heroSlides: () => cachedGet('/content/hero-slides').then((b) => b.data),
+  testimonials: (params) => cachedGet(`/content/testimonials${qs(params)}`),
   services: (params) => cachedGet(`/services${qs(params)}`),
   service: (slug) => cachedGet(`/services/${slug}`).then((b) => b.data),
   hospitals: (params) => cachedGet(`/hospitals${qs(params)}`),

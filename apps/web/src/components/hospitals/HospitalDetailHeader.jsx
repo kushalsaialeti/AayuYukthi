@@ -21,7 +21,8 @@ export function HospitalDetailHeader({ hospital, tx }) {
   const ratingVal = hospital.rating || null;
   const visitsVal = hospital.assisted_visits_count || null;
   const fullAddress = hospital.address_en || [hospital.city, hospital.state, hospital.pincode].filter(Boolean).join(', ');
-  const phone = hospital.contact_phone || '180022982273';
+  // Only a real hospital-configured number renders a call action.
+  const phone = hospital.contact_phone || null;
   const disclaimer = hospital.disclaimer_en || `AayuYukthi is an independent companion and care coordination provider. We provide logistical, escort, and process advocacy for patients visiting ${displayName}; we do not provide medical treatment or represent hospital administration.`;
 
   return (
@@ -38,11 +39,6 @@ export function HospitalDetailHeader({ hospital, tx }) {
           <span className="hsp-breadcrumb-sep">/</span>
           <span className="hsp-breadcrumb-active">{displayName}</span>
         </nav>
-
-        <div className="hsp-status-pulse-badge">
-          <span className="hsp-pulse-dot" />
-          <span>AayuYukthi On-Site Command Hub Active</span>
-        </div>
       </div>
 
       {/* 2. Hospital Header & Verification Hero Card */}
@@ -59,10 +55,6 @@ export function HospitalDetailHeader({ hospital, tx }) {
                   {visitsVal && <span className="hsp-rating-sub">({visitsVal})</span>}
                 </span>
               )}
-              <span className="hsp-hero-verified-badge">
-                <Icon name="verified" size={18} className="text-primary" />
-                <span>Full Coordination Fleet</span>
-              </span>
             </div>
 
             <h1 className="hsp-hero-title">{displayName}</h1>
@@ -80,9 +72,11 @@ export function HospitalDetailHeader({ hospital, tx }) {
               <Icon name="calendar_add_on" size={20} />
               <span>Book Accompaniment</span>
             </a>
-            <a href={`tel:${phone}`} className="hsp-btn-hero-icon" title="Quick Assistance Phone">
-              <Icon name="call" size={20} className="text-primary" />
-            </a>
+            {phone && (
+              <a href={`tel:${phone}`} className="hsp-btn-hero-icon" title="Quick Assistance Phone">
+                <Icon name="call" size={20} className="text-primary" />
+              </a>
+            )}
           </div>
         </div>
 

@@ -6,6 +6,7 @@ export function CustomerHeader({
   isCollapsed,
   unreadCount = 0,
   onMenuToggle,
+  publicId = '',
 }) {
   const { user } = useCustomerAuth();
   const location = useLocation();
@@ -31,6 +32,7 @@ export function CustomerHeader({
   };
 
   const pageTitle = getPageTitle();
+  const chipId = publicId || user?.public_id || '';
 
   return (
     <header className={`customer-header ${isCollapsed ? 'is-collapsed' : ''}`}>
@@ -54,6 +56,13 @@ export function CustomerHeader({
         }}>
           {pageTitle}
         </h1>
+
+        {/* Compact portal-wide account ID */}
+        {chipId && (
+          <span className="cust-id-chip" title={`Your AayuYukthi ID: ${chipId}`}>
+            {chipId}
+          </span>
+        )}
       </div>
 
       {/* Right side: Notifications + Profile avatar */}

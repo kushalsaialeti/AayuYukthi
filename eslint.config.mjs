@@ -17,6 +17,12 @@ export default [
         URL: 'readonly',
         fetch: 'readonly',
         AbortController: 'readonly',
+        AbortSignal: 'readonly',
+        performance: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
+        queueMicrotask: 'readonly',
+        structuredClone: 'readonly',
       },
     },
     rules: {

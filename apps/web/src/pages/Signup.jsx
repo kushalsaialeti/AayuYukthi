@@ -112,7 +112,7 @@ export function Signup() {
 
   const socialProof = {
     title: 'Need help or have questions?',
-    cities: 'Call our family care team: 1800-AAYU-CARE (Mon-Sun, 9 AM - 8 PM)',
+    cities: cms['auth.signup.social_proof_cities']?.body_en || '',
   };
 
   return (
@@ -132,34 +132,6 @@ export function Signup() {
             features={features}
             socialProof={socialProof}
           />
-
-          {/* Trust Credentials List */}
-          <div
-            style={{
-              background: 'var(--ay-auth-surface-low)',
-              borderRadius: '12px',
-              padding: '14px 20px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              color: 'var(--ay-auth-on-surface-variant)',
-              fontSize: '13px',
-              fontWeight: 500,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="material-symbols-outlined text-[20px]" style={{ color: 'var(--ay-auth-primary)' }}>
-                security
-              </span>
-              <span>HIPAA & DISHA Compliant</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="material-symbols-outlined text-[20px]" style={{ color: 'var(--ay-auth-primary)' }}>
-                verified
-              </span>
-              <span>Police Verified Companions</span>
-            </div>
-          </div>
         </div>
 
         {/* Right Column: Registration Form Card */}

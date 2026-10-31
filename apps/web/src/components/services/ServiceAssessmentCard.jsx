@@ -126,7 +126,7 @@ export function ServiceAssessmentCard({ services = [], inquiryBlocks = {} }) {
                       required
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      placeholder="+91 8816 223344"
+                      placeholder="+91 98765 43210"
                     />
                   </div>
 

@@ -120,6 +120,20 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastRefreshedAt, setLastRefreshedAt] = useState(null);
+  const { roles } = useAuth();
+  const isHead = Array.isArray(roles) && roles.includes('operations_head');
+  const [security24h, setSecurity24h] = useState(null);
+
+  // One-time alarm-card fetch (not polled): /ops/security/summary is
+  // operations_head-only, so other roles never see a guaranteed 403.
+  useEffect(() => {
+    if (!isHead) return undefined;
+    let mounted = true;
+    api.securitySummary()
+      .then((s) => { if (mounted) setSecurity24h(typeof s?.total24h === 'number' ? s.total24h : 0); })
+      .catch(() => {});
+    return () => { mounted = false; };
+  }, [isHead]);
 
   const fetchLiveDashboard = useCallback(async (silent = false) => {
     if (!silent) setIsRefreshing(true);
@@ -298,6 +312,20 @@ export function Dashboard() {
           <p className="ops-metric-val">{metrics.support}</p>
           <span style={{ fontSize: '0.75rem', color: 'var(--ops-outline)', fontWeight: 500 }}>
             24/7 Companion desk online
+          </span>
+        </Link>
+
+        {/* Card 5: Security alarm summary (Operations Head only) */}
+        <Link to="/security" className="ops-metric-card" style={{ textDecoration: 'none' }}>
+          <div className="ops-metric-top">
+            <p className="ops-metric-label">Security Events (24h)</p>
+            <div className="ops-metric-icon-box" style={{ backgroundColor: 'var(--ops-error-container)', color: 'var(--ops-on-error-container)' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>security</span>
+            </div>
+          </div>
+          <p className="ops-metric-val">{security24h === null ? '—' : security24h}</p>
+          <span style={{ fontSize: '0.75rem', color: 'var(--ops-outline)', fontWeight: 600 }}>
+            {isHead ? 'Attack attempts intercepted · open Security Monitor' : 'Operations Head access required'}
           </span>
         </Link>
       </div>

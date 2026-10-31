@@ -73,7 +73,18 @@ export function OpsLayout() {
       <div className="ops-main-wrapper">
         <OpsHeader onToggleSidebar={() => setSidebarOpen((v) => !v)} />
         <main className="ops-content-container">
-          <Outlet />
+          {/* Inner boundary: lazy page chunks resolve here so the sidebar and
+              header stay mounted instead of flashing the full-page fallback. */}
+          <React.Suspense
+            fallback={
+              <div className="ops-route-loading" role="status" aria-live="polite">
+                <span className="ops-spinner" aria-hidden="true" />
+                <span>Loading page…</span>
+              </div>
+            }
+          >
+            <Outlet />
+          </React.Suspense>
         </main>
       </div>
     </div>

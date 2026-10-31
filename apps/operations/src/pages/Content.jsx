@@ -588,6 +588,7 @@ const PREDEFINED_CATEGORIES = [
   { id: 'contact', label: 'Contact & Hubs' },
   { id: 'customer', label: 'Customer Portal & Advisories' },
   { id: 'recipient', label: 'Care Recipients Config' },
+  { id: 'legal', label: 'Terms & Privacy Policies' },
   { id: 'footer', label: 'Footer & Legal' },
 ];
 
@@ -1197,6 +1198,14 @@ export function Blocks() {
 }
 
 // 5. CONTACT SETTINGS
+//
+// Field contract (server/src/modules/content/schemas.js → contactSettingsSchema):
+//   top-level : phone, email, address_en, hours_en
+//   socials   : free-form string map (phone_sub, whatsapp, city_hub_*, …)
+// Every field below saves AND is read by the public Contact page. Copy that
+// the public page takes from Content Blocks instead (contact.counseling.*,
+// contact.rapid.*) is intentionally NOT editable here — it would look saved
+// but never appear, which is how the contact page ended up showing stale text.
 export function Contact() {
   const [values, set, setValues] = useFormState({
     phone: '',
@@ -1210,37 +1219,37 @@ export function Contact() {
   const [saving, setSaving] = useState(false);
   const toast = useToast();
 
+  const load = async () => {
+    setError(null);
+    try {
+      const d = await api.getOne('cms/contact-settings');
+      setExistingSocials(d.socials || {});
+      setValues({
+        phone: d.phone ?? '',
+        phone_sub: d.socials?.phone_sub ?? '',
+        phone_desc: d.socials?.phone_desc ?? '',
+        email: d.email ?? '',
+        support_sub: d.socials?.support_sub ?? '',
+        partnerships_email: d.socials?.partnerships_email ?? '',
+        partnerships_sub: d.socials?.partnerships_sub ?? '',
+        address_en: d.address_en ?? '',
+        hours_en: d.hours_en ?? '',
+        city_hub_name: d.socials?.city_hub_name ?? 'Bhimavaram',
+        city_hub_coverage: d.socials?.city_hub_coverage ?? '',
+        whatsapp: d.socials?.whatsapp ?? '',
+        whatsapp_sub: d.socials?.whatsapp_sub ?? '',
+        whatsapp_desc: d.socials?.whatsapp_desc ?? '',
+        coordinator_image_url: d.socials?.coordinator_image_url ?? '',
+        rapid_phone: d.socials?.rapid_phone ?? '',
+      });
+    } catch (err) {
+      setError(err);
+    }
+  };
+
   useEffect(() => {
-    api
-      .getOne('cms/contact-settings')
-      .then((d) => {
-        setExistingSocials(d.socials || {});
-        setValues({
-          phone: d.phone ?? '',
-          phone_sub: d.socials?.phone_sub ?? '',
-          phone_desc: d.socials?.phone_desc ?? '',
-          email: d.email ?? '',
-          support_sub: d.socials?.support_sub ?? '',
-          partnerships_email: d.socials?.partnerships_email ?? '',
-          partnerships_sub: d.socials?.partnerships_sub ?? '',
-          address_en: d.address_en ?? '',
-          hours_en: d.hours_en ?? '',
-          city_hub_name: d.socials?.city_hub_name ?? 'Bhimavaram',
-          city_hub_coverage: d.socials?.city_hub_coverage ?? '',
-          whatsapp: d.socials?.whatsapp ?? '',
-          whatsapp_sub: d.socials?.whatsapp_sub ?? '',
-          whatsapp_desc: d.socials?.whatsapp_desc ?? '',
-          coordinator_image_url: d.socials?.coordinator_image_url ?? '',
-          counseling_badge: d.socials?.counseling_badge ?? '',
-          counseling_title: d.socials?.counseling_title ?? '',
-          counseling_heading: d.socials?.counseling_heading ?? '',
-          counseling_desc: d.socials?.counseling_desc ?? '',
-          rapid_phone: d.socials?.rapid_phone ?? '',
-          rapid_title: d.socials?.rapid_title ?? '',
-          rapid_subtitle: d.socials?.rapid_subtitle ?? '',
-        });
-      })
-      .catch(setError);
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const submit = async (e) => {
@@ -1266,7 +1275,10 @@ export function Contact() {
           whatsapp: socialFields.whatsapp || phone || '',
         },
       });
-      toast.success('Public contact channels and page copy saved successfully');
+      // Re-fetch from the server so the form and live preview show exactly
+      // what was persisted (catches any validation/transform surprises).
+      await load();
+      toast.success('Contact settings saved — form re-synced with the server');
     } catch (err) {
       setError(err);
       toast.error(err.message || 'Failed to update contact settings');
@@ -1282,7 +1294,9 @@ export function Contact() {
           Public Contact Channels &amp; Page CMS
         </h1>
         <p style={{ margin: '0.25rem 0 0', fontSize: '0.875rem', color: 'var(--ops-outline)' }}>
-          Manage phone numbers, support emails, Bhimavaram coordination hub address, active hours, rapid response hotlines, and guidance features displayed on the Contact page.
+          Manage the phone number, support &amp; partnerships emails, Bhimavaram hub address, operating hours,
+          WhatsApp details, coordinator image, and rapid hotline shown on the public Contact page. Guidance copy
+          (badge, titles, descriptions) is published from Content Blocks.
         </p>
       </div>
 
@@ -1309,35 +1323,35 @@ export function Contact() {
               <div className="ops-form-field">
                 <label className="ops-form-label">
                   Helpline Display Number
-                  <span className="ops-form-hint">E.g. 1800-AAYU-CARE or +91 8816 223344</span>
+                  <span className="ops-form-hint">E.g. +91 98765 43210 — the real number your team answers</span>
                 </label>
                 <input
                   className="ops-input"
                   type="text"
                   value={values.phone ?? ''}
                   onChange={set('phone')}
-                  placeholder="1800-AAYU-CARE"
+                  placeholder="+91 98765 43210"
                 />
               </div>
 
               <div className="ops-form-field">
                 <label className="ops-form-label">
                   Secondary Dial Subtitle
-                  <span className="ops-form-hint">E.g. (1800-2298-2273)</span>
+                  <span className="ops-form-hint">E.g. 98765-43210 (with country code if outside India)</span>
                 </label>
                 <input
                   className="ops-input"
                   type="text"
                   value={values.phone_sub ?? ''}
                   onChange={set('phone_sub')}
-                  placeholder="(1800-2298-2273)"
+                  placeholder="98765-43210"
                 />
               </div>
 
               <div className="ops-form-field">
                 <label className="ops-form-label">
                   Helpline SLA Note
-                  <span className="ops-form-hint">Displayed below phone number</span>
+                  <span className="ops-form-hint">Displayed below the phone number · overridden by Content Block contact.channels.helpline_desc when published</span>
                 </label>
                 <input
                   className="ops-input"
@@ -1371,6 +1385,7 @@ export function Contact() {
               <div className="ops-form-field">
                 <label className="ops-form-label">
                   WhatsApp Badge Label
+                  <span className="ops-form-hint">Overridden by Content Block contact.channels.whatsapp_sub when published</span>
                 </label>
                 <input
                   className="ops-input"
@@ -1384,6 +1399,7 @@ export function Contact() {
               <div className="ops-form-field">
                 <label className="ops-form-label">
                   WhatsApp Description Note
+                  <span className="ops-form-hint">Overridden by Content Block contact.channels.whatsapp_desc when published</span>
                 </label>
                 <textarea
                   className="ops-textarea"
@@ -1416,6 +1432,7 @@ export function Contact() {
               <div className="ops-form-field">
                 <label className="ops-form-label">
                   Support Email Subtitle
+                  <span className="ops-form-hint">Overridden by Content Block contact.channels.support_sub when published</span>
                 </label>
                 <input
                   className="ops-input"
@@ -1442,6 +1459,7 @@ export function Contact() {
               <div className="ops-form-field">
                 <label className="ops-form-label">
                   Partnerships Subtitle
+                  <span className="ops-form-hint">Overridden by Content Block contact.channels.partnerships_sub when published</span>
                 </label>
                 <input
                   className="ops-input"
@@ -1509,11 +1527,16 @@ export function Contact() {
               </div>
             </div>
 
-            {/* 5. Coordination Desk Feature & Rapid Care */}
+            {/* 5. Coordinator Image & Rapid Hotline */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', paddingTop: '1rem', borderTop: '1px solid var(--ops-outline-subtle)' }}>
               <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--ops-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                5. Guidance Feature &amp; Rapid Hotline
+                5. Coordinator Image &amp; Rapid Hotline
               </span>
+              <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--ops-outline)', lineHeight: 1.5 }}>
+                The guidance badge, title, heading, description and rapid-card copy are published from
+                Content Blocks (<code>contact.counseling.*</code> / <code>contact.rapid.*</code>) — edit them under
+                Content Blocks, otherwise stale block text overrides this page.
+              </p>
               <div className="ops-form-field">
                 <label className="ops-form-label">
                   Care Coordinator Image URL
@@ -1530,58 +1553,6 @@ export function Contact() {
 
               <div className="ops-form-field">
                 <label className="ops-form-label">
-                  Guidance Feature Badge
-                </label>
-                <input
-                  className="ops-input"
-                  type="text"
-                  value={values.counseling_badge ?? ''}
-                  onChange={set('counseling_badge')}
-                  placeholder="In-House Coordination Desk"
-                />
-              </div>
-
-              <div className="ops-form-field">
-                <label className="ops-form-label">
-                  Guidance Feature Title
-                </label>
-                <input
-                  className="ops-input"
-                  type="text"
-                  value={values.counseling_title ?? ''}
-                  onChange={set('counseling_title')}
-                  placeholder="Certified Hospital Navigators"
-                />
-              </div>
-
-              <div className="ops-form-field">
-                <label className="ops-form-label">
-                  Guidance Heading
-                </label>
-                <input
-                  className="ops-input"
-                  type="text"
-                  value={values.counseling_heading ?? ''}
-                  onChange={set('counseling_heading')}
-                  placeholder="Human-First Healthcare Guidance"
-                />
-              </div>
-
-              <div className="ops-form-field">
-                <label className="ops-form-label">
-                  Guidance Description
-                </label>
-                <textarea
-                  className="ops-textarea"
-                  rows={3}
-                  value={values.counseling_desc ?? ''}
-                  onChange={set('counseling_desc')}
-                  placeholder="Our care coordinators are trained in hospital administrative workflows, patient privacy, and compassionate geriatric support. No call centers — speak directly with certified care specialists."
-                />
-              </div>
-
-              <div className="ops-form-field">
-                <label className="ops-form-label">
                   Rapid Care Hotline Phone
                   <span className="ops-form-hint">Under 3 hours dispatch desk</span>
                 </label>
@@ -1590,7 +1561,7 @@ export function Contact() {
                   type="tel"
                   value={values.rapid_phone ?? ''}
                   onChange={set('rapid_phone')}
-                  placeholder="1800-AAYU-CARE"
+                  placeholder="+91 98765 43210"
                 />
               </div>
             </div>
@@ -1600,7 +1571,7 @@ export function Contact() {
                 <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
                   {saving ? 'hourglass_empty' : 'save'}
                 </span>
-                {saving ? 'Saving changes…' : 'Save All Contact Channels &amp; Copy'}
+                {saving ? 'Saving changes…' : 'Save All Contact Channels & Copy'}
               </button>
             </div>
           </form>

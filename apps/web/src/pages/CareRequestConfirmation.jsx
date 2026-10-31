@@ -51,7 +51,7 @@ export function CareRequestConfirmation() {
   if (error || !receipt) {
     return (
       <div className="rq-page-shell" style={{ padding: '40px 16px' }}>
-        <LoadError t={{ retry: 'Retry' }} onRetry={loadReceipt} />
+        <LoadError t={{ loadError: 'Could not load your care request confirmation.', tryAgain: 'Try again' }} onRetry={loadReceipt} />
         <div style={{ textAlign: 'center', marginTop: '20px' }}>
           <Link to="/request-care" className="rq-btn-secondary" style={{ textDecoration: 'none' }}>
             Return to Request Care

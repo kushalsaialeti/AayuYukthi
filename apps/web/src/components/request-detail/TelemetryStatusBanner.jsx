@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 
 export function TelemetryStatusBanner({
   status,
-  companionName = 'Rajesh Varma',
+  companionName = null,
   recipientName = 'Patient',
-  helplinePhone = '1800-AAYU-CARE',
-  companionPhone = '+91 98765 43210',
+  helplinePhone = null,
+  companionPhone = null,
   cmsConfig = {},
 }) {
   const [retrying, setRetrying] = useState(false);
@@ -24,8 +24,8 @@ export function TelemetryStatusBanner({
   const defaultBadge = isDisrupted ? 'Manual Relay Active' : 'Live Sync Active';
 
   const defaultBody = isDisrupted
-    ? `Live GPS location ping for Companion ${safeCompanion} timed out 4 minutes ago due to hospital basement network blindspot (Tower B Radiology). On-ground Care Coordinator Sister Rekha is in direct radio contact. Patient ${safeRecipient} is safe and comfortably seated in the consultation lounge.`
-    : `Continuous telemetry beacon for Companion ${safeCompanion} is online. Real-time updates and doctor visit notes are streaming live. Patient ${safeRecipient} is accompanied under our Zero-Separation Protocol.`;
+    ? `Live location ping for Companion ${safeCompanion} timed out, so the ground team has been contacted directly. Patient ${safeRecipient} remains with the companion on site.`
+    : `Live updates for Companion ${safeCompanion} are online. Real-time updates and doctor visit notes are streaming to your portal while Patient ${safeRecipient} is accompanied.`;
 
   const bannerTitle = cmsConfig.title || defaultTitle;
   const bannerBadge = cmsConfig.badge || defaultBadge;
@@ -37,17 +37,21 @@ export function TelemetryStatusBanner({
     setRetryLabel('Pinging Hospital Node…');
 
     setTimeout(() => {
-      setRetryLabel('Mesh Offline • SMS Relay Active');
+      setRetryLabel('Retrying…');
       setTimeout(() => {
         setRetryLabel('Retry Telemetry Sync');
         setRetrying(false);
       }, 3000);
-    }, 1800);
+    }, 2000);
   };
 
   const cleanHelpline = typeof helplinePhone === 'object'
-    ? (helplinePhone.phone || helplinePhone.body_en || '1800-AAYU-CARE')
-    : String(helplinePhone || '1800-AAYU-CARE');
+    ? (helplinePhone?.phone || helplinePhone?.body_en || '')
+    : String(helplinePhone || '');
+  const cleanCompanionPhone = String(companionPhone || '');
+  const deskCallUrl = cleanHelpline ? `tel:${cleanHelpline.replace(/[^0-9+]/g, '')}` : null;
+  const directCallPhone = cleanCompanionPhone || cleanHelpline;
+  const directCallUrl = directCallPhone ? `tel:${directCallPhone.replace(/[^0-9+]/g, '')}` : null;
 
   return (
     <section className="rd-alert-banner">
@@ -90,14 +94,16 @@ export function TelemetryStatusBanner({
 
         {/* Quick Action CTAs */}
         <div className="rd-alert-actions">
-          <a
-            href={`tel:${cleanHelpline.replace(/[^0-9+]/g, '')}`}
-            className="rd-btn-call-desk"
-            title="Call 24/7 Desk Coordinator"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>phone_in_talk</span>
-            <span>Call Desk Coordinator</span>
-          </a>
+          {deskCallUrl && (
+            <a
+              href={deskCallUrl}
+              className="rd-btn-call-desk"
+              title="Call the desk coordinator"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>phone_in_talk</span>
+              <span>Call Desk Coordinator</span>
+            </a>
+          )}
 
           <button
             type="button"
@@ -118,14 +124,16 @@ export function TelemetryStatusBanner({
             <span>{retryLabel}</span>
           </button>
 
-          <a
-            href={`tel:${(companionPhone || cleanHelpline).replace(/[^0-9+]/g, '')}`}
-            className="rd-btn-call-companion"
-            title={`Direct call to ${safeCompanion}`}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>dialer_sip</span>
-            <span>Call {companionFirstName} ({companionPhone || cleanHelpline})</span>
-          </a>
+          {directCallUrl && (
+            <a
+              href={directCallUrl}
+              className="rd-btn-call-companion"
+              title={`Direct call to ${safeCompanion}`}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>dialer_sip</span>
+              <span>Call {companionFirstName} ({directCallPhone})</span>
+            </a>
+          )}
         </div>
       </div>
     </section>

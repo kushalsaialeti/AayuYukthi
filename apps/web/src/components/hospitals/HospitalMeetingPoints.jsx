@@ -26,7 +26,7 @@ export function HospitalMeetingPoints({ hospital }) {
       </div>
 
       <p className="hsp-section-desc mb-space-md">
-        Your assigned companion arrives 15 minutes before your scheduled slot. Look for the official AayuYukthi badge, high-visibility credential tag, and navy coordination kit.
+        Meet your assigned companion at the coordination point listed below.
       </p>
 
       <div className="hsp-meeting-points-list">

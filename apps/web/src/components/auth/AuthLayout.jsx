@@ -60,8 +60,8 @@ export function AuthLayout({
     };
   }, []);
 
-  const helplineNumber = cmsBlocks['auth.helpline.number']?.body_en || '1800-AAYU-CARE';
-  const helplineTel = cmsBlocks['auth.helpline.tel']?.body_en || 'tel:180022982273';
+  const helplineNumber = cmsBlocks['auth.helpline.number']?.body_en || '';
+  const helplineTel = cmsBlocks['auth.helpline.tel']?.body_en || '';
 
   return (
     <AuthCmsContext.Provider value={cmsBlocks}>

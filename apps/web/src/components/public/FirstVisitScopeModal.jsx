@@ -111,11 +111,11 @@ export function FirstVisitScopeModal({ forceOpen = false, onClose }) {
             />
             <span className="first-visit-checkbox-text">
               I have read, understand, and agree to the service restrictions above. I accept the{' '}
-              <Link to="/contact" target="_blank" rel="noopener noreferrer" className="first-visit-link">
+              <Link to="/privacy" target="_blank" rel="noopener noreferrer" className="first-visit-link">
                 Privacy Policy
               </Link>{' '}
               and{' '}
-              <Link to="/how-it-works" target="_blank" rel="noopener noreferrer" className="first-visit-link">
+              <Link to="/terms" target="_blank" rel="noopener noreferrer" className="first-visit-link">
                 Terms of Service
               </Link>
               .

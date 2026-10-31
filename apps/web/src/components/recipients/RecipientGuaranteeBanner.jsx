@@ -5,11 +5,12 @@ export function RecipientGuaranteeBanner({ config = {} }) {
     badge: 'AayuYukthi Safety Standard',
     title: 'Empathetic Companion Matching',
     description:
-      'Prior to every hospital visit or outpatient pickup, our coordination engine pairs your loved one with a certified healthcare escort proficient in their spoken language and trained specifically for their mobility constraints. You will receive real-time check-in updates and doctor note summaries.',
+      'Prior to every hospital visit or outpatient pickup, our coordination engine pairs your loved one with a companion proficient in their spoken language and suited to their mobility needs. You will receive check-in updates and doctor note summaries.',
     helplineTitle: 'Need urgent coordinator help?',
-    helplineNumber: '1800-AAYU-CARE',
-    helplineSubtitle: 'Toll-free 24/7 family transit support',
+    helplineNumber: '',
+    helplineSubtitle: '',
   };
+  const showHelpline = Boolean(guarantee.helplineNumber);
 
   return (
     <div className="rc-safety-banner">
@@ -32,17 +33,21 @@ export function RecipientGuaranteeBanner({ config = {} }) {
         </div>
       </div>
 
-      <div className="rc-helpline-card">
-        <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#4b6077', fontWeight: 700 }}>
-          {guarantee.helplineTitle || 'Need urgent coordinator help?'}
-        </span>
-        <span style={{ fontSize: '1.15rem', fontWeight: 700, color: '#004349' }}>
-          {guarantee.helplineNumber || '1800-AAYU-CARE'}
-        </span>
-        <span style={{ fontSize: '12px', color: '#4b6077' }}>
-          {guarantee.helplineSubtitle || 'Toll-free 24/7 family transit support'}
-        </span>
-      </div>
+      {showHelpline && (
+        <div className="rc-helpline-card">
+          <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#4b6077', fontWeight: 700 }}>
+            {guarantee.helplineTitle || 'Need urgent coordinator help?'}
+          </span>
+          <span style={{ fontSize: '1.15rem', fontWeight: 700, color: '#004349' }}>
+            {guarantee.helplineNumber}
+          </span>
+          {guarantee.helplineSubtitle && (
+            <span style={{ fontSize: '12px', color: '#4b6077' }}>
+              {guarantee.helplineSubtitle}
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }

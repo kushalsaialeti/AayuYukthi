@@ -27,12 +27,12 @@ export function HospitalNearbyNetwork({ currentHospital, nearbyList = [] }) {
 
       <div className="hsp-nearby-grid">
         {filtered.map((h) => {
-          const rating = h.rating || 4.8;
-          const visits = h.assisted_visits_count || '1,800+ Assisted Visits';
+          const rating = h.rating || null;
+          const visits = h.assisted_visits_count || null;
           const area = h.city || cityName;
           const desc = h.description_en
             ? (h.description_en.length > 95 ? `${h.description_en.slice(0, 95)}…` : h.description_en)
-            : (h.campus_highlight_en || 'Full outpatient guidance, senior escort, & fast-track lab collection.');
+            : (h.campus_highlight_en || null);
 
           return (
             <Link
@@ -43,18 +43,20 @@ export function HospitalNearbyNetwork({ currentHospital, nearbyList = [] }) {
               <div>
                 <div className="hsp-nearby-card-top">
                   <span className="hsp-nearby-area-badge">{area}</span>
-                  <span className="hsp-nearby-rating">
-                    <Icon name="star" size={16} filled className="text-amber" />
-                    <strong>{rating}</strong>
-                  </span>
+                  {rating && (
+                    <span className="hsp-nearby-rating">
+                      <Icon name="star" size={16} filled className="text-amber" />
+                      <strong>{rating}</strong>
+                    </span>
+                  )}
                 </div>
 
                 <h3 className="hsp-nearby-card-title">{h.name_en}</h3>
-                <p className="hsp-nearby-card-desc">{desc}</p>
+                {desc && <p className="hsp-nearby-card-desc">{desc}</p>}
               </div>
 
               <div className="hsp-nearby-card-footer">
-                <span>{visits}</span>
+                {visits && <span>{visits}</span>}
                 <Icon name="arrow_forward" size={18} className="hsp-nearby-arrow" />
               </div>
             </Link>

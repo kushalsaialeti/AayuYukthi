@@ -36,7 +36,6 @@ export function Services({ t, locale }) {
 
   const [cmsBlocks, setCmsBlocks] = useState({});
   const [contactInfo, setContactInfo] = useState(null);
-  const [hospitalCount, setHospitalCount] = useState('42+');
 
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -52,11 +51,10 @@ export function Services({ t, locale }) {
       setLoading(true);
       setError(null);
       try {
-        const [servicesRes, blocksRes, contactRes, hospitalsRes] = await Promise.allSettled([
+        const [servicesRes, blocksRes, contactRes] = await Promise.allSettled([
           api.services({ limit: 50 }),
           api.blocks(CMS_BLOCK_KEYS),
           api.contactInfo(),
-          api.hospitals({ limit: 1 }),
         ]);
 
         if (cancelled) return;
@@ -73,11 +71,6 @@ export function Services({ t, locale }) {
 
         if (contactRes.status === 'fulfilled' && contactRes.value) {
           setContactInfo(contactRes.value);
-        }
-
-        if (hospitalsRes.status === 'fulfilled' && hospitalsRes.value?.pagination?.total) {
-          const total = hospitalsRes.value.pagination.total;
-          setHospitalCount(total > 40 ? `${total}+` : `${total}`);
         }
       } catch (err) {
         if (!cancelled) setError(err);
@@ -146,7 +139,6 @@ export function Services({ t, locale }) {
       <ServiceHero
         heroBlocks={cmsBlocks}
         contactInfo={contactInfo}
-        hospitalCount={hospitalCount}
         t={t}
       />
 

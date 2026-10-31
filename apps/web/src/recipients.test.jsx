@@ -137,10 +137,11 @@ describe('RecipientDirectoryComponents', () => {
     expect(screen.getByText('Slow Walker / Arm Support')).toBeInTheDocument();
   });
 
-  it('renders guarantee banner with helpline', () => {
+  it('renders guarantee banner and hides the helpline unless CMS supplies one', () => {
     render(<RecipientGuaranteeBanner />);
     expect(screen.getByText(/Empathetic Companion Matching/i)).toBeInTheDocument();
-    expect(screen.getByText('1800-AAYU-CARE')).toBeInTheDocument();
+    // No fabricated number is shown when no helpline is configured
+    expect(screen.queryByText(/Need urgent coordinator help/i)).not.toBeInTheDocument();
   });
 });
 

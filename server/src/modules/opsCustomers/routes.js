@@ -27,11 +27,11 @@ export function createOpsCustomersRouter(db) {
       let clause = `WHERE EXISTS (SELECT 1 FROM user_roles ur WHERE ur.user_id = u.id AND ur.role = 'customer')`;
       if (req.query.q) {
         params.push(`%${req.query.q}%`);
-        clause += ` AND (u.full_name ILIKE $1 OR u.email ILIKE $1 OR u.phone_e164 ILIKE $1)`;
+        clause += ` AND (u.full_name ILIKE $1 OR u.email ILIKE $1 OR u.phone_e164 ILIKE $1 OR u.public_id ILIKE $1)`;
       }
       const total = (await db.query(`SELECT COUNT(*)::int AS count FROM users u ${clause}`, params)).rows[0].count;
       const { rows } = await db.query(
-        `SELECT u.id, u.full_name, u.email, u.phone_e164, u.locale, u.status,
+        `SELECT u.id, u.public_id, u.full_name, u.email, u.phone_e164, u.locale, u.status,
                 u.onboarding_last_step, u.onboarding_completed_at, u.created_at,
                 (SELECT COUNT(*)::int FROM requests r WHERE r.owner_user_id = u.id) AS request_count
          FROM users u ${clause} ORDER BY u.created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
@@ -51,7 +51,7 @@ export function createOpsCustomersRouter(db) {
          FROM users u WHERE EXISTS (
            SELECT 1 FROM user_roles ur WHERE ur.user_id = u.id
              AND ur.role IN ('operations_head','operations_staff','content_manager','analytics_viewer')
-         ) AND u.status = 'active' ORDER BY u.full_name ASC`,
+         ) AND u.status = 'active' ORDER BY u.full_name ASC LIMIT 100`,
       );
       res.json({ data: rows });
     } catch (err) {
@@ -62,7 +62,7 @@ export function createOpsCustomersRouter(db) {
   router.get('/:id', async (req, res, next) => {
     try {
       const { rows } = await db.query(
-        `SELECT u.id, u.full_name, u.email, u.phone_e164, u.locale, u.status, u.preferences,
+        `SELECT u.id, u.public_id, u.full_name, u.email, u.phone_e164, u.locale, u.status, u.preferences,
                 u.email_verified_at, u.phone_verified_at,
                 u.onboarding_last_step, u.onboarding_completed_at, u.created_at
          FROM users u WHERE u.id = $1 LIMIT 1`,

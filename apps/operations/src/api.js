@@ -102,4 +102,14 @@ export const api = {
   put: (entity, body) => request(`/ops/${entity}`, { method: 'PUT', body }),
   delete: (entity, id) => request(`/ops/${entity}/${id}`, { method: 'DELETE' }),
   deleteBlock: (key) => request(`/ops/cms/content-blocks/${key}`, { method: 'DELETE' }),
+  // Operations → Security (operations_head only): 24h alarm summary + paged event feed.
+  securitySummary: () => request('/ops/security/summary'),
+  securityEvents: async (params = {}) => {
+    const qs = new URLSearchParams({ page: '1', limit: '20', ...params }).toString();
+    const payload = await request(`/ops/security/events?${qs}`, { unwrap: false });
+    return {
+      data: Array.isArray(payload.data) ? payload.data : [],
+      pagination: payload.pagination ?? null,
+    };
+  },
 };

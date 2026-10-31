@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../api.js';
 import { track } from '../analytics.js';
-import { useDocumentMeta, Loading, LoadError, Empty } from '../components/layout.jsx';
+import { useDocumentMeta, Loading, LoadError } from '../components/layout.jsx';
 
 export function NotificationsPage() {
   const [data, setData] = useState(null);

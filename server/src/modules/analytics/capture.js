@@ -4,13 +4,14 @@ import rateLimit from 'express-rate-limit';
 import { validate } from '../../middleware/validate.js';
 import { verifyAccessToken } from '../auth/tokens.js';
 import { CLIENT_EVENTS, scrubMetadata } from './events.js';
+import { rateLimitHandler } from '../../security/middleware.js';
 
 const captureLimiter = rateLimit({
   windowMs: 60_000,
   max: process.env.NODE_ENV === 'production' ? 120 : 600,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { code: 'RATE_LIMITED', message: 'Too many events. Please try again later.' },
+  handler: rateLimitHandler('RATE_LIMITED_CAPTURE'),
   skip: () => process.env.NODE_ENV === 'test',
 });
 

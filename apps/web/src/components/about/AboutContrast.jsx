@@ -16,7 +16,7 @@ export function AboutContrast({ cms = {} }) {
   ];
 
   const supportedPoints = [
-    'A kind, verified companion meets you right at the hospital gate with a wheelchair if needed.',
+    'A kind care companion meets you right at the hospital gate with a wheelchair if needed.',
     'Your companion stands in all the lines while you or your parents rest comfortably in a chair.',
     'Instant live updates sent to your phone: "Doctor meeting started", "Tests done", "Medicines collected".',
     'Help carrying all files, lab slips, bills, and collecting medicines from the pharmacy.',

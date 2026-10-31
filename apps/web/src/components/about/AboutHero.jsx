@@ -9,24 +9,21 @@ export function AboutHero({ cms = {} }) {
   const title = cms['about.hero.title'] || 'Making hospital visits gentle, respectful, and stress-free.';
   const desc =
     cms['about.hero.description'] ||
-    'Going to a crowded hospital alone can be overwhelming, especially for senior citizens. AayuYukthi provides friendly, trusted care companions to walk beside your parents or family members from the hospital entrance to the doctor’s room and safely back home.';
+    'Going to a crowded hospital alone can be overwhelming, especially for senior citizens. AayuYukthi provides friendly care companions to walk beside your parents or family members from the hospital entrance to the doctor’s room and safely back home.';
 
   const primaryLabel = cms['about.hero.primary_label'] || 'Book Care Companion';
   const primaryUrl = cms['about.hero.primary_url'] || '/request-care';
-  const secondaryLabel = cms['about.hero.secondary_label'] || '1800-AAYU-CARE';
-  const secondaryUrl = cms['about.hero.secondary_url'] || 'tel:180022982273';
+  // Contact-dependent secondary CTA only renders when the CMS configures one —
+  // no hardcoded helpline number.
+  const secondaryLabel = cms['about.hero.secondary_label'] || null;
+  const secondaryUrl = cms['about.hero.secondary_url'] || null;
 
   const heroImg = cms['about.hero.image_url'] || DEFAULT_HERO_IMG;
-  const imageCaption = cms['about.hero.image_caption'] || 'Bhimavaram & Regional Network';
-  const imageSub = cms['about.hero.image_sub'] || 'Partner hospitals active on-ground';
-  const imageBadge = cms['about.hero.image_badge'] || 'Verified Team';
+  const imageCaption = cms['about.hero.image_caption'] || null;
+  const imageSub = cms['about.hero.image_sub'] || null;
+  const imageBadge = cms['about.hero.image_badge'] || null;
 
   const metrics = [
-    {
-      val: '100%',
-      label: 'Background-Verified',
-      sub: 'Police vetted, identity-checked companions',
-    },
     {
       val: 'On-Time',
       label: 'Gate Arrival',
@@ -84,10 +81,12 @@ export function AboutHero({ cms = {} }) {
                   <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_forward</span>
                 </Link>
 
-                <a href={secondaryUrl} className="ay-about-btn-secondary">
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--pub-primary-container)' }}>call</span>
-                  <span>{secondaryLabel}</span>
-                </a>
+                {secondaryUrl && (
+                  <a href={secondaryUrl} className="ay-about-btn-secondary">
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'var(--pub-primary-container)' }}>call</span>
+                    <span>{secondaryLabel || 'Contact Us'}</span>
+                  </a>
+                )}
               </div>
             </div>
 
@@ -101,22 +100,26 @@ export function AboutHero({ cms = {} }) {
                   loading="eager"
                 />
 
-                <div className="ay-about-hero-badge-overlay">
-                  <div className="ay-about-hero-badge-left">
-                    <span className="ay-about-hero-badge-icon">
-                      <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>location_on</span>
-                    </span>
-                    <div>
-                      <p className="ay-about-hero-badge-title">{imageCaption}</p>
-                      <p className="ay-about-hero-badge-sub">{imageSub}</p>
+                {(imageCaption || imageSub || imageBadge) && (
+                  <div className="ay-about-hero-badge-overlay">
+                    <div className="ay-about-hero-badge-left">
+                      <span className="ay-about-hero-badge-icon">
+                        <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>location_on</span>
+                      </span>
+                      <div>
+                        {imageCaption && <p className="ay-about-hero-badge-title">{imageCaption}</p>}
+                        {imageSub && <p className="ay-about-hero-badge-sub">{imageSub}</p>}
+                      </div>
                     </div>
-                  </div>
 
-                  <span className="ay-about-verified-pill">
-                    <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>verified</span>
-                    <span>{imageBadge}</span>
-                  </span>
-                </div>
+                    {imageBadge && (
+                      <span className="ay-about-verified-pill">
+                        <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>verified</span>
+                        <span>{imageBadge}</span>
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>

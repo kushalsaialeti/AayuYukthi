@@ -17,6 +17,7 @@ const SECTION_TITLES = {
   '/media': 'Media Assets & CDN',
   '/analytics': 'Platform Analytics',
   '/audit-logs': 'Security Audit Trail',
+  '/security': 'Security Monitor',
 };
 
 export function OpsHeader({ onToggleSidebar }) {

@@ -19,10 +19,9 @@ const STEP_TITLES = {
   1: 'Who needs support?',
   2: 'Which service?',
   3: 'Which hospital?',
-  4: 'Visit purpose & directives',
-  5: 'When? (Schedule)',
-  6: 'Logistics & Mandatory consent',
-  7: 'Review & Verification',
+  4: 'When? (Schedule Date & Time)',
+  5: 'Doorstep Pickup & Care Consent',
+  6: 'Review & Verification',
 };
 
 export function GuidedRequestEngine({
@@ -73,7 +72,7 @@ export function GuidedRequestEngine({
     return {
       authEmailEnabled: emailBlock ? emailBlock.body_en !== 'false' : true,
       authPhoneEnabled: phoneBlock ? phoneBlock.body_en === 'true' : false,
-      ...getStepCms(7),
+      ...getStepCms(6),
     };
   }, [cmsBlocks]);
 
@@ -195,12 +194,12 @@ export function GuidedRequestEngine({
     }
   };
 
-  const progressPercentage = Math.round((step / 7) * 100);
+  const progressPercentage = Math.round((step / 6) * 100);
 
   return (
     <div className="rq-page-shell">
-      {/* MagicUI ScrollProgress — active during care-request form filling (Steps 1 to 7) */}
-      {step >= 1 && step <= 7 && <ScrollProgress />}
+      {/* MagicUI ScrollProgress — active during care-request form filling (Steps 1 to 6) */}
+      {step >= 1 && step <= 6 && <ScrollProgress />}
 
       <div className="rq-container" ref={containerRef}>
         {/* Top Header & Progress Bar */}
@@ -220,7 +219,7 @@ export function GuidedRequestEngine({
               <div style={{ width: 60 }} />
             )}
             <div className="rq-step-counter">
-              Step {step} of 7 • {STEP_TITLES[step] || ''}
+              Step {step} of 6 • {STEP_TITLES[step] || ''}
             </div>
           </div>
           <div
@@ -229,7 +228,7 @@ export function GuidedRequestEngine({
             aria-valuenow={progressPercentage}
             aria-valuemin="0"
             aria-valuemax="100"
-            aria-label={`Step ${step} of 7`}
+            aria-label={`Step ${step} of 6`}
           >
             <div className="rq-progress-fill" style={{ width: `${progressPercentage}%` }} />
           </div>
@@ -282,40 +281,22 @@ export function GuidedRequestEngine({
           )}
 
           {step === 4 && (
-            <TextQuestion
-              stepNumber={4}
-              stepLabel={getStepCms(4).eyebrow || 'Step 4 of 7 • Purpose & Special Directives'}
-              title={getStepCms(4).title || 'What is the purpose of this hospital visit?'}
-              description={getStepCms(4).desc || 'Help our care companion prepare appropriate records, queue tokens, and mobility support.'}
-              value={draft.appointmentType}
-              onChange={(val) => updateField('appointmentType', val)}
-              placeholder="e.g. Cardiology OPD Consult, MRI Brain Scan, Post-Surgery Followup"
-              suggestions={[
-                'Doctor OPD Consultation',
-                'Diagnostic Scans & Lab Tests',
-                'Post-Surgery Review',
-                'Chemotherapy / Dialysis Daycare',
-                'Second Medical Opinion',
-              ]}
-              error={errors.appointmentType}
-            />
-          )}
-
-          {step === 5 && (
             <DateQuestion
               dateValue={draft.appointmentDate}
               onDateChange={(val) => updateField('appointmentDate', val)}
+              timeValue={draft.appointmentTime}
+              onTimeChange={(val) => updateField('appointmentTime', val)}
               timeSlotValue={draft.timeSlot}
               onTimeSlotChange={(val) => updateField('timeSlot', val)}
-              cmsConfig={getStepCms(5)}
+              cmsConfig={getStepCms(4)}
               error={errors.appointmentDate}
             />
           )}
 
-          {step === 6 && (
+          {step === 5 && (
             <AddressQuestion
-              pickupRequired={draft.pickupRequired}
-              onPickupRequiredChange={(val) => updateField('pickupRequired', val)}
+              pickupRequired={true}
+              onPickupRequiredChange={() => updateField('pickupRequired', true)}
               pickupAddress={draft.pickupAddress}
               onPickupAddressChange={(val) => updateField('pickupAddress', val)}
               dropoffAddress={draft.dropoffAddress}
@@ -325,14 +306,14 @@ export function GuidedRequestEngine({
               currentUserPhone={user?.phone_e164}
               consentAccepted={draft.consentAccepted}
               onConsentAcceptedChange={(val) => updateField('consentAccepted', val)}
-              cmsConfig={getStepCms(6)}
+              cmsConfig={getStepCms(5)}
               error={errors.pickupAddress}
               consentError={errors.consent}
               phoneError={errors.updatePhone}
             />
           )}
 
-          {step === 7 && (
+          {step === 6 && (
             <div>
               <ReviewQuestion
                 draft={draft}
@@ -340,7 +321,7 @@ export function GuidedRequestEngine({
                 serviceTitle={selectedService?.title_en}
                 serviceTitles={serviceTitles}
                 hospitalName={selectedHospital?.name_en}
-                cmsConfig={getStepCms(7)}
+                cmsConfig={getStepCms(6)}
                 onEditStep={(target) => goToStep(target)}
               />
 
@@ -350,7 +331,7 @@ export function GuidedRequestEngine({
                   <div
                     style={{
                       background: '#ecfdf5',
-                      border: '1px solid #10b981',
+                      border: '1.5px solid #10b981',
                       borderRadius: '12px',
                       padding: '16px 20px',
                       display: 'flex',
@@ -418,7 +399,7 @@ export function GuidedRequestEngine({
               <div />
             )}
 
-            {step < 7 && (
+            {step < 6 && (
               <button
                 type="button"
                 className="rq-btn-primary"
@@ -429,7 +410,7 @@ export function GuidedRequestEngine({
               </button>
             )}
 
-            {step === 7 && (
+            {step === 6 && (
               <button
                 type="button"
                 className="rq-btn-primary"

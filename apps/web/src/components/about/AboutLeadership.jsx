@@ -4,16 +4,10 @@ import React from 'react';
 export function AboutLeadership({ cms = {} }) {
   const badge = cms['about.leadership.badge'] || 'Companion Standards';
   const title = cms['about.leadership.title'] || 'How We Choose & Train Every Companion';
-  const sub =
-    cms['about.leadership.sub'] ||
-    'Your family’s safety and comfort come first. Every person who wears an AayuYukthi badge goes through thorough verification and hands-on training before assisting you.';
+  // Only rendered when the CMS provides it — no invented verification copy.
+  const sub = cms['about.leadership.sub'] || null;
 
   const standards = [
-    {
-      icon: 'verified_user',
-      title: 'Police & Identity Verification',
-      desc: 'Government photo ID, local address verification, and background checks are mandatory before any companion joins our team.',
-    },
     {
       icon: 'accessible_forward',
       title: 'Elder Mobility & Wheelchair Care',
@@ -39,9 +33,11 @@ export function AboutLeadership({ cms = {} }) {
             <span className="ay-about-section-badge">{badge}</span>
             <h2 className="ay-about-section-h2">{title}</h2>
           </div>
-          <p className="ay-about-paragraph" style={{ maxWidth: '32rem', margin: 0 }}>
-            {sub}
-          </p>
+          {sub && (
+            <p className="ay-about-paragraph" style={{ maxWidth: '32rem', margin: 0 }}>
+              {sub}
+            </p>
+          )}
         </div>
 
         <div className="ay-about-standards-grid">

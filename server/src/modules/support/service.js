@@ -46,9 +46,14 @@ export async function listTickets(db, userId, { page, limit }) {
 }
 
 async function thread(db, ticketId, includeInternal) {
+  // Bounded: take the most recent 500 messages, then restore chronological
+  // order — a support thread must never grow an unbounded response.
   const { rows } = await db.query(
-    `SELECT id, sender_kind, message, is_internal, created_at FROM support_messages
-     WHERE ticket_id = $1 ${includeInternal ? '' : 'AND is_internal = false'} ORDER BY created_at ASC`,
+    `SELECT id, sender_kind, message, is_internal, created_at FROM (
+       SELECT id, sender_kind, message, is_internal, created_at FROM support_messages
+       WHERE ticket_id = $1 ${includeInternal ? '' : 'AND is_internal = false'}
+       ORDER BY created_at DESC LIMIT 500
+     ) recent ORDER BY created_at ASC`,
     [ticketId],
   );
   return rows.map((r) => toMessage(r, includeInternal));

@@ -1,16 +1,30 @@
 import { logger } from '../../config/logger.js';
+import { env } from '../../config/env.js';
+import { sendPlainEmail } from '../auth/email.js';
 
-// Delivery provider abstraction. V1 ships the log provider (in-app rows are
-// always written; external dispatch is best-effort and never fails the request).
-// Phase 15 wires real SMS/email providers behind this same interface:
-//
-//   send({ channel: 'sms'|'email'|'push', to, title, body }) => Promise<{ providerMessageId? }>
+// Delivery provider abstraction. Email goes through the same Resend transport
+// OTP uses (so SECURITY_ADMIN_EMAIL red alerts really send once
+// RESEND_API_KEY is configured); SMS/push and any provider failure fall back
+// to the log provider — dispatch is always best-effort and never fails a
+// request. In-app notification rows are always written by the caller.
 
 export const logProvider = {
   name: 'log',
   async send({ channel, to, title }) {
     logger.info({ channel, to: mask(to), title }, 'Notification dispatched (log provider)');
     return {};
+  },
+};
+
+// Real email sender via Resend (already provisioned for OTP mail).
+export const emailProvider = {
+  name: 'resend',
+  async send({ channel, to, title, body }) {
+    if (channel !== 'email') return logProvider.send({ channel, to, title });
+    const result = await sendPlainEmail({ to, subject: title, text: body });
+    if (result.ok) return { providerMessageId: result.id };
+    // Domain not verified / key missing → keep the durable log trail instead.
+    return logProvider.send({ channel, to, title });
   },
 };
 
@@ -23,7 +37,7 @@ function mask(to) {
   return `${to.slice(0, 4)}***`;
 }
 
-let provider = logProvider;
+let provider = env.RESEND_API_KEY && !env.isTest ? emailProvider : logProvider;
 
 export function setProvider(next) {
   provider = next;

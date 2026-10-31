@@ -2,7 +2,7 @@ import { httpError } from '../../middleware/errorHandler.js';
 import { toPublicUser } from '../../utils/dto.js';
 import { track } from '../analytics/events.js';
 
-const PROFILE_FIELDS = `id, email, phone_e164, full_name, locale, status, preferences,
+const PROFILE_FIELDS = `id, public_id, email, phone_e164, full_name, locale, status, preferences,
   email_verified_at, phone_verified_at, onboarding_last_step, onboarding_completed_at, created_at`;
 
 export function toProfileDto(row, roles = []) {

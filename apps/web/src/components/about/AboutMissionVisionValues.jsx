@@ -33,8 +33,8 @@ export function AboutMissionVisionValues({ cms = {} }) {
     {
       num: '2',
       icon: 'verified_user',
-      title: '2. 100% Honest & Verified',
-      desc: 'All companions undergo identity and police background checks. Our loyalty is strictly to you and your patient’s comfort.',
+      title: '2. Honest & Clear',
+      desc: 'Open, honest communication at every step — our loyalty is strictly to you and your patient’s comfort.',
     },
     {
       num: '3',
@@ -60,7 +60,20 @@ export function AboutMissionVisionValues({ cms = {} }) {
       title: '6. Zero Commissions',
       desc: 'Completely independent support. We never accept cuts or referral fees from doctors, clinics, or pharmacies.',
     },
-  ];
+  ].map((def, i) => {
+    // CMS (about.val1..6.*) wins over the built-in list when published.
+    const n = i + 1;
+    const cmsTitle = cms[`about.val${n}.title`];
+    const cmsBody = cms[`about.val${n}.body`];
+    const cmsIcon = cms[`about.val${n}.icon`];
+    if (!cmsTitle && !cmsBody) return def;
+    return {
+      ...def,
+      icon: cmsIcon || def.icon,
+      title: cmsTitle || def.title,
+      desc: cmsBody || def.desc,
+    };
+  });
 
   return (
     <section className="ay-about-values-section">

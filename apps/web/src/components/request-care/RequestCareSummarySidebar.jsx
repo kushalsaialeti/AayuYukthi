@@ -26,7 +26,7 @@ export function RequestCareSummarySidebar({
   selectedServices = [],
   selectedHospital,
   appointmentDate,
-  helplinePhone = '1800-AAYU-CARE',
+  helplinePhone = '',
   cmsPricing = {},
 }) {
   const recipientName = selectedRecipient?.full_name || selectedRecipient?.name;
@@ -40,8 +40,9 @@ export function RequestCareSummarySidebar({
     : (selectedService ? [selectedService] : []);
 
   const cleanHelpline = typeof helplinePhone === 'object'
-    ? (helplinePhone.body_en || helplinePhone.title_en || '1800-AAYU-CARE')
-    : String(helplinePhone || '1800-AAYU-CARE');
+    ? (helplinePhone.body_en || helplinePhone.title_en || '')
+    : String(helplinePhone || '');
+  const helplineTel = cleanHelpline.replace(/[^0-9]/g, '');
 
   const priceRange = cmsPricing.range || '₹1,250 – ₹2,400';
   const priceUnit = cmsPricing.unit || '/ 4 hr session';
@@ -218,7 +219,7 @@ export function RequestCareSummarySidebar({
             <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--cust-primary)' }}>
               verified
             </span>
-            <span>100% Police-verified &amp; BLS-trained companions</span>
+            <span>BLS-trained companions with verified credentials</span>
           </div>
           <div className="rc-assurance-item">
             <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--cust-primary)' }}>
@@ -234,7 +235,8 @@ export function RequestCareSummarySidebar({
           </div>
         </div>
 
-        {/* Dedicated Assistance Box */}
+        {/* Dedicated Assistance Box (only when a real number is configured) */}
+        {helplineTel && (
         <div className="rc-assistance-box">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--cust-primary)' }}>
@@ -250,7 +252,7 @@ export function RequestCareSummarySidebar({
             </div>
           </div>
           <a
-            href={`tel:${cleanHelpline.replace(/[^0-9]/g, '') || '1800229822'}`}
+            href={`tel:${helplineTel}`}
             style={{
               padding: '0.35rem 0.75rem',
               borderRadius: '0.375rem',
@@ -264,6 +266,7 @@ export function RequestCareSummarySidebar({
             Call Now
           </a>
         </div>
+        )}
       </div>
 
       {/* Non-clinical Notice Note */}

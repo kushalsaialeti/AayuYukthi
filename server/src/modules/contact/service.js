@@ -4,6 +4,7 @@ import rateLimit from 'express-rate-limit';
 import { validate } from '../../middleware/validate.js';
 import { emailSchema, phoneE164Schema } from '../../validation/common.js';
 import { recordAudit } from '../audit/writer.js';
+import { rateLimitHandler } from '../../security/middleware.js';
 
 // Public contact form: validated, rate-limited, stored for ops triage.
 // At least one contact channel is required (mirrors the DB CHECK).
@@ -36,7 +37,7 @@ const contactLimiter = rateLimit({
   max: 20,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { code: 'RATE_LIMITED', message: 'Too many messages. Please try again later.' },
+  handler: rateLimitHandler('RATE_LIMITED_CONTACT'),
 });
 
 export function createContactPublicRouter(db) {

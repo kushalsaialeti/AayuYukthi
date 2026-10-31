@@ -6,8 +6,30 @@ import { requestOtp, consumeOtp } from './otp.js';
 import { recordAudit } from '../audit/writer.js';
 import { track } from '../analytics/events.js';
 import { refreshOnboardingState } from '../users/service.js';
+import { recordSecurityEvent, maskIdentifier } from '../../security/events.js';
 
 const REFRESH_TTL_DAYS = 30;
+
+// Failed authentications become security_events rows (visible in
+// Operations → Security): brute-force attempts must leave a trace even when
+// the rate limiter has not yet tripped. Never throws into the auth path.
+async function recordAuthFailure(db, ctx, surface, channel, reason = 'bad_credentials') {
+  try {
+    await recordSecurityEvent(db, {
+      eventType: 'AUTH_FAILURE',
+      severity: 'medium',
+      ip: ctx?.ip ?? null,
+      method: 'POST',
+      path: `/auth/${surface.split('_')[0]}`,
+      detail: {
+        surface,
+        reason,
+        identifier: maskIdentifier(channel?.email ?? channel?.phone_e164 ?? null),
+      },
+      requestId: null,
+    });
+  } catch { /* auth flow must continue */ }
+}
 
 function normalizeChannel(input) {
   if (input.email) return { email: input.email.trim().toLowerCase(), phone_e164: input.phone_e164 ?? null };
@@ -18,7 +40,7 @@ function normalizeChannel(input) {
 
 async function findByChannel(db, { email, phone_e164 }) {
   const { rows } = await db.query(
-    `SELECT id, email, phone_e164, password_hash, full_name, locale, status, preferences, created_at,
+    `SELECT id, public_id, email, phone_e164, password_hash, full_name, locale, status, preferences, created_at,
             email_verified_at, phone_verified_at, onboarding_last_step, onboarding_completed_at
      FROM users WHERE (lower(email) = lower($1) AND $1 IS NOT NULL)
         OR (phone_e164 = $2 AND $2 IS NOT NULL)
@@ -52,7 +74,7 @@ export async function customerSignup(db, input) {
   const passwordHash = input.password ? await hashPassword(input.password) : null;
   const { rows } = await db.query(
     `INSERT INTO users (email, phone_e164, password_hash, full_name, status, onboarding_last_step)
-     VALUES ($1,$2,$3,$4,'active','SIGNUP_STARTED') RETURNING id, email, phone_e164, full_name, locale, status, created_at`,
+     VALUES ($1,$2,$3,$4,'active','SIGNUP_STARTED') RETURNING id, public_id, email, phone_e164, full_name, locale, status, created_at`,
     [channel.email, channel.phone_e164, passwordHash, input.full_name.trim()],
   );
   const user = rows[0];
@@ -65,8 +87,13 @@ export async function customerSignup(db, input) {
 }
 
 // Verifies the signup/login OTP, stamps verification + funnel step, issues tokens.
-export async function verifyCustomerOtp(db, { channel, purpose, code }) {
-  await consumeOtp(db, { identifier: channel, purpose, code });
+export async function verifyCustomerOtp(db, { channel, purpose, code }, ctx = {}) {
+  try {
+    await consumeOtp(db, { identifier: channel, purpose, code });
+  } catch (err) {
+    await recordAuthFailure(db, ctx, 'otp_verify', channel, 'otp_invalid');
+    throw err;
+  }
   const user = await findByChannel(db, channel);
   if (!user) throw httpError(404, 'NOT_FOUND', 'Account not found');
   if (user.status !== 'active') throw httpError(403, 'ACCOUNT_DISABLED', 'This account is not active');
@@ -90,12 +117,18 @@ export async function verifyCustomerOtp(db, { channel, purpose, code }) {
 }
 
 // Password login for customers (requires a password set at signup or via recovery).
-export async function customerLogin(db, { identifier, password }) {
+export async function customerLogin(db, { identifier, password }, ctx = {}) {
   const channel = normalizeChannel({ identifier });
   const user = await findByChannel(db, channel);
   const ok = user?.password_hash ? await verifyPassword(password, user.password_hash) : false;
-  if (!user || !ok) throw httpError(401, 'INVALID_CREDENTIALS', 'Invalid login details');
-  if (user.status !== 'active') throw httpError(403, 'ACCOUNT_DISABLED', 'This account is not active');
+  if (!user || !ok) {
+    await recordAuthFailure(db, ctx, 'customer_login', channel);
+    throw httpError(401, 'INVALID_CREDENTIALS', 'Invalid login details');
+  }
+  if (user.status !== 'active') {
+    await recordAuthFailure(db, ctx, 'customer_login', channel, 'disabled');
+    throw httpError(403, 'ACCOUNT_DISABLED', 'This account is not active');
+  }
   await refreshOnboardingState(db, user.id);
   const freshUser = (await findByChannel(db, channel)) || user;
   const session = await issueSession(db, freshUser);

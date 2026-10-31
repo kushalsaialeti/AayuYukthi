@@ -568,20 +568,25 @@ export function HospitalForm() {
               />
             </Field>
 
-            <div className="ops-form-grid ops-form-grid-2">
-              <ImageUploadField
-                label="Hospital Campus Exterior Photo"
-                value={values.image_url || ''}
-                onChange={(url) => setValues((v) => ({ ...v, image_url: url }))}
-                hint="Exterior hospital building photography displayed on Landing Page and Campus Guide. If left empty, an architectural wireframe is displayed."
-              />
+            <div className="ops-upload-fields-container">
+              <span className="ops-upload-fields-title">
+                Campus Visual Assets &amp; Brand Emblem
+              </span>
+              <div className="ops-upload-fields-flex">
+                <ImageUploadField
+                  label="Hospital Campus Exterior Photo"
+                  value={values.image_url || ''}
+                  onChange={(url) => setValues((v) => ({ ...v, image_url: url }))}
+                  hint="Exterior hospital building photography displayed on Landing Page and Campus Guide. If left empty, an architectural wireframe is displayed."
+                />
 
-              <ImageUploadField
-                label="Hospital Logo / Brand Emblem"
-                value={values.logo_url || ''}
-                onChange={(url) => setValues((v) => ({ ...v, logo_url: url }))}
-                hint="Official hospital logo or clinic insignia."
-              />
+                <ImageUploadField
+                  label="Hospital Logo / Brand Emblem"
+                  value={values.logo_url || ''}
+                  onChange={(url) => setValues((v) => ({ ...v, logo_url: url }))}
+                  hint="Official hospital logo or clinic insignia."
+                />
+              </div>
             </div>
           </div>
 
@@ -1092,26 +1097,28 @@ export function HospitalForm() {
               10. Campus Visuals, Floor Plan &amp; Logo
             </span>
 
-            <ImageUploadField
-              label="Interactive Campus Floor Plan / Map"
-              value={values.map_image_url ?? ''}
-              onChange={(url) => setValues((prev) => ({ ...prev, map_image_url: url }))}
-              helper="High-res layout or floor plan preview. Opened in zoom lightbox by patients."
-            />
+            <div className="ops-upload-fields-flex">
+              <ImageUploadField
+                label="Interactive Campus Floor Plan / Map"
+                value={values.map_image_url ?? ''}
+                onChange={(url) => setValues((prev) => ({ ...prev, map_image_url: url }))}
+                hint="High-res layout or floor plan preview. Opened in zoom lightbox by patients."
+              />
 
-            <ImageUploadField
-              label="Campus Building / Exterior Photo"
-              value={values.image_url ?? ''}
-              onChange={(url) => setValues((prev) => ({ ...prev, image_url: url }))}
-              helper="High-quality photo of hospital facade or exterior."
-            />
+              <ImageUploadField
+                label="Campus Building / Exterior Photo"
+                value={values.image_url ?? ''}
+                onChange={(url) => setValues((prev) => ({ ...prev, image_url: url }))}
+                hint="High-quality photo of hospital facade or exterior."
+              />
 
-            <ImageUploadField
-              label="Hospital Emblem / Logo"
-              value={values.logo_url ?? ''}
-              onChange={(url) => setValues((prev) => ({ ...prev, logo_url: url }))}
-              helper="Hospital brand logo or crest."
-            />
+              <ImageUploadField
+                label="Hospital Emblem / Logo"
+                value={values.logo_url ?? ''}
+                onChange={(url) => setValues((prev) => ({ ...prev, logo_url: url }))}
+                hint="Hospital brand logo or crest."
+              />
+            </div>
           </div>
 
           {/* Section 11: Campus Specific FAQs */}

@@ -34,35 +34,42 @@ export function RequestDetail() {
   const { id } = useParams();
   const [req, setReq] = useState(null);
   const [cmsBlocks, setCmsBlocks] = useState({});
-  const [helplinePhone, setHelplinePhone] = useState('1800-AAYU-CARE');
+  const [helplinePhone, setHelplinePhone] = useState('');
   const [error, setError] = useState(null);
   const [cancelling, setCancelling] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   useDocumentMeta('Care Request Details', 'Live accompaniment tracking, hospital station liaison, and care dossier.');
 
-  const fetchLiveDetails = useCallback(async (silent = false) => {
-    if (!silent) setIsRefreshing(true);
-    try {
-      const [reqData, blocksData, contactData] = await Promise.all([
-        api.authedGetDetails(id),
-        api.blocks([
-          'request_detail.station.manager',
-          'request_detail.station.location',
-          'request_detail.station.intercom',
-          'customer.emergency.helpline',
-        ]).catch(() => ({})),
-        api.contactInfo().catch(() => null),
-      ]);
-
-      setReq(reqData);
+  // Static CMS content — fetched once per mount, never inside the polling loop.
+  useEffect(() => {
+    let active = true;
+    Promise.all([
+      api.blocks([
+        'request_detail.station.manager',
+        'request_detail.station.location',
+        'request_detail.station.intercom',
+        'customer.emergency.helpline',
+      ]).catch(() => ({})),
+      api.contactInfo().catch(() => null),
+    ]).then(([blocksData, contactData]) => {
+      if (!active) return;
       setCmsBlocks(blocksData || {});
-
       if (contactData?.phone) {
         setHelplinePhone(contactData.phone);
       } else if (blocksData?.['customer.emergency.helpline']) {
-        setHelplinePhone(extractBlockText(blocksData['customer.emergency.helpline'], 'body_en', '1800-AAYU-CARE'));
+        setHelplinePhone(extractBlockText(blocksData['customer.emergency.helpline'], 'body_en', '') || '');
       }
+    });
+    return () => { active = false; };
+  }, []);
+
+  // Live request data — the only thing that is polled.
+  const fetchLiveDetails = useCallback(async (silent = false) => {
+    if (!silent) setIsRefreshing(true);
+    try {
+      const reqData = await api.authedGetDetails(id);
+      setReq(reqData);
       setError(null);
     } catch (err) {
       if (!silent) setError(err);
@@ -74,7 +81,7 @@ export function RequestDetail() {
   useEffect(() => {
     fetchLiveDetails(false);
 
-    // Auto-poll every 8 seconds to reflect CMS updates live immediately
+    // Auto-poll every 8 seconds so status changes show up immediately
     const pollInterval = setInterval(() => {
       fetchLiveDetails(true);
     }, 8000);
@@ -150,7 +157,7 @@ export function RequestDetail() {
   const stationManager = req.station?.manager || extractBlockText(cmsBlocks['request_detail.station.manager'], 'body_en', null);
   const stationLocation = req.station?.location || extractBlockText(cmsBlocks['request_detail.station.location'], 'body_en', null);
   const stationIntercom = req.station?.intercom || extractBlockText(cmsBlocks['request_detail.station.intercom'], 'body_en', null);
-  const stationPhone = req.station?.phone || helplinePhone;
+  const stationPhone = req.station?.phone || helplinePhone || null;
 
   return (
     <div className="rd-page-shell">
@@ -385,10 +392,10 @@ export function RequestDetail() {
             {/* Companion Profile Card (Live details from CMS) */}
             <CompanionCard
               name={companionName}
-              role={req.companion?.role || 'Certified Care Companion'}
+              role={req.companion?.role || 'Care Companion'}
               companionId={req.companion?.badge_id || (req.assigned_to ? `AY-BHM-${String(req.assigned_to).slice(-4).toUpperCase()}` : null)}
-              escortsCount={req.companion?.escorts_count || 'Verified Escort'}
-              phone={req.companion?.phone || helplinePhone}
+              escortsCount={req.companion?.escorts_count || null}
+              phone={req.companion?.phone || helplinePhone || null}
               isAssigned={Boolean(companionName)}
             />
 
@@ -413,7 +420,7 @@ export function RequestDetail() {
                   </h3>
                 </div>
                 <p style={{ margin: 0, fontSize: '0.8125rem', color: 'var(--cust-on-surface-variant)', lineHeight: 1.5 }}>
-                  {req.pickup_address || 'Residence doorstep pickup arranged with sanitized AC vehicle.'}
+                  {req.pickup_address || 'Pickup address will be confirmed by the coordination desk.'}
                 </p>
               </div>
             )}

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { validate } from '../../middleware/validate.js';
-import { authLimiter } from '../../middleware/rateLimits.js';
+import { authLimiter, refreshLimiter } from '../../middleware/rateLimits.js';
 import { opsLoginSchema, refreshSchema } from './schemas.js';
 import { opsLogin, rotateRefresh, logout, logoutAll } from './service.js';
 import { requireAuth } from '../../middleware/auth.js';
@@ -10,14 +10,14 @@ export function createOpsAuthRouter(db) {
 
   router.post('/login', authLimiter, validate(opsLoginSchema), async (req, res, next) => {
     try {
-      const result = await opsLogin(db, req.body);
+      const result = await opsLogin(db, req.body, { ip: req.ip });
       res.json({ data: result });
     } catch (err) {
       next(err);
     }
   });
 
-  router.post('/refresh', validate(refreshSchema), async (req, res, next) => {
+  router.post('/refresh', refreshLimiter, validate(refreshSchema), async (req, res, next) => {
     try {
       const result = await rotateRefresh(db, req.body.refreshToken);
       res.json({ data: result });

@@ -117,27 +117,31 @@ export function VerifyOtpPage({
   const trustTitle = cms['auth.otp.title']?.body_en || 'Safeguarding your family’s healthcare journey.';
   const trustDesc = cms['auth.otp.description']?.body_en || 'We use two-factor verification to ensure all medical schedules, care recipient details, and live hospital updates remain strictly confidential.';
   const tipText = cms['auth.otp.tip']?.body_en || 'Care coordinators will never ask for your 6-digit passcode over the phone, at hospital gates, or via unsecured links.';
-  const coordinatorNote = cms['auth.otp.coordinator_note']?.body_en || 'Assigned Care Coordinator: Rajesh Kumar • Awaiting your authorization for transit check-in';
 
   const features = [
     {
       icon: cms['auth.otp.feature_1']?.icon || 'mail',
       title: cms['auth.otp.feature_1']?.title_en || 'Instant Real-Email Delivery',
-      desc: cms['auth.otp.feature_1']?.body_en || 'Your passcode is dispatched directly to your inbox via Resend.',
+      desc: cms['auth.otp.feature_1']?.body_en || 'Your passcode is dispatched directly to your inbox.',
     },
     {
       icon: cms['auth.otp.feature_2']?.icon || 'headset_mic',
       title: cms['auth.otp.feature_2']?.title_en || 'Dedicated Support Desk',
-      desc: cms['auth.otp.feature_2']?.body_en || 'Live care navigators available 7:00 AM – 9:00 PM IST daily.',
+      desc: cms['auth.otp.feature_2']?.body_en || 'Care navigators are ready to help with your account and visit questions.',
     },
   ];
 
-  const urgentHelp = {
-    icon: 'emergency',
-    title: 'Need Urgent Transit Assistance?',
-    action: 'Call 1800-AAYU-CARE',
-    tel: cms['auth.helpline.tel']?.body_en || 'tel:180022982273',
-  };
+  // Urgent help is only shown when the CMS actually supplies a real number.
+  const helplineNumber = cms['auth.helpline.number']?.body_en;
+  const helplineTel = cms['auth.helpline.tel']?.body_en;
+  const urgentHelp = helplineNumber && helplineTel
+    ? {
+        icon: 'emergency',
+        title: 'Need Urgent Transit Assistance?',
+        action: `Call ${helplineNumber}`,
+        tel: helplineTel,
+      }
+    : null;
 
   const content = (
     <>
@@ -315,21 +319,6 @@ export function VerifyOtpPage({
             </Link>
           </div>
         </section>
-      </div>
-
-      {/* Assigned Care Coordinator Standby Banner */}
-      <div className="ay-coordinator-banner" style={{ marginTop: '32px' }}>
-        <div className="ay-coordinator-left">
-          <div className="ay-coordinator-avatar">RK</div>
-          <div>
-            <div className="ay-coordinator-title">Assigned Care Coordinator: Rajesh Kumar</div>
-            <div className="ay-coordinator-sub">{coordinatorNote}</div>
-          </div>
-        </div>
-        <div className="ay-coordinator-status-pill">
-          <span className="ay-live-dot" style={{ background: '#059669' }} />
-          <span>Coordinator On-Standby</span>
-        </div>
       </div>
     </>
   );

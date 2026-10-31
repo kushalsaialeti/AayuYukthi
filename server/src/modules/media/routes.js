@@ -19,6 +19,19 @@ const listQuery = z.object({
   status: z.enum(['active', 'archived']).optional(),
 });
 
+// Direct-upload payload: base64 image data URI OR http(s) URL. Types and
+// sizes are checked BEFORE parsing (a 20mb non-string body previously threw
+// a TypeError → 500). Cloudinary rejects non-image content server-side.
+const uploadSchema = z.object({
+  dataUri: z.string().min(20).max(14_000_000).regex(/^data:image\/[a-z0-9.+-]+;base64,/i, 'Must be a base64 image data URI').optional(),
+  url: z.string().trim().max(2048).regex(/^https?:\/\//i, 'Must be an http(s) URL').optional(),
+  alt_text: z.string().max(300).optional(),
+  entity_type: z.string().max(50).optional(),
+  entity_id: z.string().uuid().optional(),
+}).refine((v) => Boolean(v.dataUri || v.url), {
+  message: 'Either dataUri (file) or url (web link) must be provided',
+});
+
 export function createMediaOpsRouter(db) {
   const router = Router();
   router.use(requireAuth, requireOperations());
@@ -36,7 +49,7 @@ export function createMediaOpsRouter(db) {
 
   // Direct upload endpoint for images: accepts base64 dataUri, Google Drive link, or web URL.
   // Converts and stores as optimized WebP format with preserved quality.
-  router.post('/upload', async (req, res, next) => {
+  router.post('/upload', validate(uploadSchema), async (req, res, next) => {
     try {
       const { dataUri, url, alt_text, entity_type, entity_id } = req.body || {};
       if (!dataUri && !url) {

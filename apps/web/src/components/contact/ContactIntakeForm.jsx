@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../../api.js';
 import { track } from '../../analytics.js';
 import { validateContact } from '../../pages/Contact.jsx';
 
+// Plain channel preferences — no implied service guarantees.
 const CHANNEL_OPTIONS = [
-  'Phone Call (Morning)',
-  'Phone Call (Evening)',
-  'WhatsApp Message',
+  'Phone Call',
+  'WhatsApp',
   'Email'
 ];
 
@@ -19,7 +20,7 @@ export function ContactIntakeForm() {
     reason: '',
     hospital: '',
     message: '',
-    channel: 'Phone Call (Morning)'
+    channel: 'Phone Call'
   });
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState('idle'); // idle | submitting | success | error
@@ -97,7 +98,7 @@ export function ContactIntakeForm() {
         reason: '',
         hospital: '',
         message: '',
-        channel: 'Phone Call (Morning)'
+        channel: 'Phone Call'
       });
     } catch (err) {
       setStatus('error');
@@ -184,7 +185,7 @@ export function ContactIntakeForm() {
                 type="tel"
                 required
                 autoComplete="tel"
-                placeholder="98765 43210"
+                placeholder="10-digit mobile number"
                 value={values.phone}
                 onChange={handleChange('phone')}
                 className="contact-input contact-phone-input"
@@ -226,7 +227,7 @@ export function ContactIntakeForm() {
               style={{ cursor: 'pointer' }}
             >
               <option value="" disabled>Select location</option>
-              <option value="Bhimavaram">Bhimavaram (Active Service Hub)</option>
+              <option value="Bhimavaram">Bhimavaram</option>
               <option value="Surrounding West Godavari">Surrounding West Godavari</option>
               <option value="Other">Other nearby area</option>
             </select>
@@ -331,9 +332,6 @@ export function ContactIntakeForm() {
               </>
             )}
           </button>
-          <p style={{ margin: '0.5rem 0 0 0', textAlign: 'center', fontSize: '0.75rem', color: 'var(--pub-on-variant)' }}>
-            Our senior coordinator will respond within <strong>15 minutes</strong> during operating hours.
-          </p>
         </div>
 
         {/* Privacy Note */}
@@ -342,7 +340,8 @@ export function ContactIntakeForm() {
             lock
           </span>
           <p style={{ margin: 0, fontSize: '0.75rem', lineHeight: 1.45 }}>
-            Your personal and medical scheduling details are kept strictly confidential under Indian healthcare data standards.
+            We use your details only to coordinate your request — see our{' '}
+            <Link to="/privacy" style={{ color: 'var(--pub-primary)', fontWeight: 600 }}>Privacy Policy</Link>.
           </p>
         </div>
       </form>

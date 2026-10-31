@@ -10,14 +10,15 @@ function getInitials(name) {
 
 export function RequestCareHeader({
   user,
-  helplinePhone = '1800-AAYU-CARE',
+  helplinePhone = '',
   activeMetro = 'Bhimavaram',
   onExit,
 }) {
   const caregiverName = user?.full_name || 'Caregiver Account';
   const cleanHelpline = typeof helplinePhone === 'object'
-    ? (helplinePhone.body_en || helplinePhone.title_en || '1800-AAYU-CARE')
-    : String(helplinePhone || '1800-AAYU-CARE');
+    ? (helplinePhone.body_en || helplinePhone.title_en || '')
+    : String(helplinePhone || '');
+  const helplineTel = cleanHelpline.replace(/[^0-9]/g, '');
 
   return (
     <header className="rc-header">
@@ -54,19 +55,21 @@ export function RequestCareHeader({
 
         {/* Right tools: Helpline, Metro, Profile */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          {/* Urgent Desk Hotline */}
-          <div style={{ display: 'none', flexDirection: 'column', textAlign: 'right' }} className="xl:flex">
-            <span style={{ fontSize: '0.6875rem', color: 'var(--cust-on-surface-variant)', display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.35rem' }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '9999px', backgroundColor: 'var(--cust-tertiary-container)' }} />
-              24/7 Urgent Care Desk
-            </span>
-            <a
-              href={`tel:${cleanHelpline.replace(/[^0-9]/g, '') || '1800229822'}`}
-              style={{ fontSize: '0.9375rem', fontWeight: 700, color: 'var(--cust-primary)', textDecoration: 'none' }}
-            >
-              {cleanHelpline}
-            </a>
-          </div>
+          {/* Desk Hotline (rendered only when a real number is configured) */}
+          {helplineTel && (
+            <div style={{ display: 'none', flexDirection: 'column', textAlign: 'right' }} className="xl:flex">
+              <span style={{ fontSize: '0.6875rem', color: 'var(--cust-on-surface-variant)', display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.35rem' }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '9999px', backgroundColor: 'var(--cust-tertiary-container)' }} />
+                Care Desk
+              </span>
+              <a
+                href={`tel:${helplineTel}`}
+                style={{ fontSize: '0.9375rem', fontWeight: 700, color: 'var(--cust-primary)', textDecoration: 'none' }}
+              >
+                {cleanHelpline}
+              </a>
+            </div>
+          )}
 
           {/* Active Metro */}
           <div style={{ display: 'none', alignItems: 'center', gap: '0.35rem', padding: '0.35rem 0.625rem', borderRadius: '0.5rem', backgroundColor: 'var(--cust-surface-container-low)', fontSize: '0.75rem', color: 'var(--cust-on-surface-variant)' }} className="lg:flex">

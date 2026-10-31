@@ -1,18 +1,21 @@
 import { Icon } from '../public/Icon.jsx';
 
-export function ServiceHero({ heroBlocks = {}, contactInfo = null, hospitalCount = '16+' }) {
+export function ServiceHero({ heroBlocks = {}, contactInfo = null, hospitalCount = undefined }) {
   const eyebrow = heroBlocks['services.hero.eyebrow']?.body_en || heroBlocks['services.hero.eyebrow']?.title_en || 'Our Care Offerings';
-  const badge = heroBlocks['services.hero.badge']?.body_en || heroBlocks['services.hero.badge']?.title_en || '100% Verified Companions across Bhimavaram & Surrounding Hospitals';
+  const badge = heroBlocks['services.hero.badge']?.body_en || heroBlocks['services.hero.badge']?.title_en || '';
   const title = heroBlocks['services.hero.title']?.body_en || heroBlocks['services.hero.title']?.title_en || 'Support designed around your hospital journey.';
   const body = heroBlocks['services.hero.body']?.body_en || heroBlocks['services.hero.body']?.title_en || 'Thoughtfully coordinated on-ground assistance, logistics, and compassionate accompaniment across every stage of outpatient and hospital care.';
 
-  const bentoTitle = heroBlocks['services.hero.bento_title']?.title_en || 'Zero Wait In Lobby';
-  const bentoDesc = heroBlocks['services.hero.bento_title']?.body_en || 'Coordinators arrive 20 mins early';
-  const bentoCoverageLabel = heroBlocks['services.hero.bento_coverage']?.title_en || 'Active Coverage';
-  const bentoCoverageVal = heroBlocks['services.hero.bento_coverage']?.body_en || `${hospitalCount} Hospitals`;
+  // Bento card: CMS-driven only — no invented SLA/wait-time copy. The coverage
+  // figure is the real total of listed hospitals from API pagination.
+  const bentoTitle = heroBlocks['services.hero.bento_title']?.title_en || '';
+  const bentoDesc = heroBlocks['services.hero.bento_title']?.body_en || '';
+  const bentoCoverageLabel = heroBlocks['services.hero.bento_coverage']?.title_en || '';
+  const bentoCoverageVal = heroBlocks['services.hero.bento_coverage']?.body_en || (hospitalCount ? `${hospitalCount} hospitals` : '');
+  const showBento = Boolean(bentoTitle || bentoDesc || bentoCoverageLabel || bentoCoverageVal);
 
-  const phone = contactInfo?.phone || '+91 8816 223344';
-  const telHref = `tel:${phone.replace(/[^0-9+]/g, '')}`;
+  const phone = contactInfo?.phone || '';
+  const telHref = phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '/contact';
 
   // Break title into main and accent if possible
   const renderTitle = () => {
@@ -40,10 +43,12 @@ export function ServiceHero({ heroBlocks = {}, contactInfo = null, hospitalCount
             <span className="svc-pulse-dot" />
             {eyebrow}
           </span>
-          <span className="svc-verified-badge">
-            <Icon name="verified" size={16} className="text-primary" />
-            {badge}
-          </span>
+          {badge ? (
+            <span className="svc-verified-badge">
+              <Icon name="verified" size={16} className="text-primary" />
+              {badge}
+            </span>
+          ) : null}
         </div>
 
         {/* Main Grid: Headline & Bento Card */}
@@ -54,27 +59,29 @@ export function ServiceHero({ heroBlocks = {}, contactInfo = null, hospitalCount
           </div>
 
           {/* Quick Summary Micro-Bento Card */}
+          {showBento ? (
           <aside className="svc-bento-card" aria-label="Care Summary">
             <div className="svc-bento-top">
-              <span className="svc-bento-tag">{bentoCoverageLabel}</span>
-              <span className="svc-bento-pill">{bentoCoverageVal}</span>
+              {bentoCoverageLabel ? <span className="svc-bento-tag">{bentoCoverageLabel}</span> : null}
+              {bentoCoverageVal ? <span className="svc-bento-pill">{bentoCoverageVal}</span> : null}
             </div>
             <div className="svc-bento-middle">
               <div className="svc-bento-icon-box">
                 <Icon name="health_and_safety" size={22} />
               </div>
               <div>
-                <p className="svc-bento-title">{bentoTitle}</p>
-                <p className="svc-bento-sub">{bentoDesc}</p>
+                {bentoTitle ? <p className="svc-bento-title">{bentoTitle}</p> : null}
+                {bentoDesc ? <p className="svc-bento-sub">{bentoDesc}</p> : null}
               </div>
             </div>
             <div className="svc-bento-footer">
-              <span>Need emergency triage?</span>
+              <span>Want to discuss this service?</span>
               <a href={telHref}>
-                <Icon name="call" size={16} /> Direct Helpline
+                <Icon name="call" size={16} /> {phone ? 'Call our care desk' : 'Contact us'}
               </a>
             </div>
           </aside>
+          ) : null}
         </div>
       </div>
     </section>

@@ -1,27 +1,11 @@
 import React, { useState } from 'react';
 
-const FALLBACK_FAQS = [
-  {
-    id: 'faq-1',
-    question_en: 'How early should I book a care coordinator before a hospital visit?',
-    answer_en: 'We recommend booking at least 24 hours in advance to guarantee optimal language and hospital-specific coordinator alignment. However, urgent bookings are accepted with as little as 3 hours notice across our active metro networks.'
-  },
-  {
-    id: 'faq-2',
-    question_en: 'What happens if my doctor appointment runs later than expected?',
-    answer_en: 'Our care coordinators stay with you until you are safely through billing, medications, and exited back to transit. There are no sudden abandonments or stress; any unexpected consultation delays transition into an upfront, simple nominal hourly overage with complete transparency.'
-  },
-  {
-    id: 'faq-3',
-    question_en: 'Do you provide medical advice or administer treatments?',
-    answer_en: 'No. AayuYukthi is strictly a non-clinical healthcare accompaniment and administrative logistics navigation service. Our companions assist with physical escorting, token queues, communication facilitation, discharge notes retrieval, and pharmacy collection. All clinical diagnosis and medical interventions remain exclusively with your licensed hospital doctors.'
-  }
-];
-
+// FAQs fetched from CMS (api.faqs) — renders nothing when empty, no
+// hardcoded fallback questions.
 export function ContactFaqs({ faqs = [] }) {
   const [openIds, setOpenIds] = useState(new Set());
 
-  const items = faqs.length > 0 ? faqs : FALLBACK_FAQS;
+  if (!faqs || faqs.length === 0) return null;
 
   const toggle = (id) => {
     setOpenIds((prev) => {
@@ -47,7 +31,7 @@ export function ContactFaqs({ faqs = [] }) {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxWidth: '860px' }}>
-        {items.map((item) => {
+        {faqs.map((item) => {
           const isOpen = openIds.has(item.id);
           return (
             <div

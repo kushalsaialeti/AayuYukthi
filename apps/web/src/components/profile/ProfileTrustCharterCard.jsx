@@ -3,7 +3,7 @@ import React from 'react';
 export function ProfileTrustCharterCard({ cmsBlocks = {} }) {
   const title = cmsBlocks['profile.trust.title']?.body_en || 'AayuYukthi Trust Protocol';
   const desc = cmsBlocks['profile.trust.body']?.body_en ||
-    'Your family account complies with ISO 27001 medical transit guidelines. All transit escorts carry physical ID badges with cryptographic QR links verified directly by hospital entrance security desks.';
+    'Review how your family account authorizes non-clinical care and how companion identities are confirmed before each visit.';
 
   return (
     <div className="profile-trust-card-shell">

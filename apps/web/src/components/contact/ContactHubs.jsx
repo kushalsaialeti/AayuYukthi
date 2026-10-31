@@ -1,69 +1,80 @@
 import React from 'react';
 
-export function ContactHubs({ blocks, contact, hospitalsCount }) {
+// Operations hub section: title/eyebrow/subtitle only from CMS contact blocks,
+// hub entries only from the CMS `contact.hubs.list` block or real contact
+// settings — no hardcoded address and no hospital-count coverage claims.
+export function ContactHubs({ blocks, contact }) {
   const safeBlocks = blocks || {};
-  const eyebrow = safeBlocks['contact.hubs.eyebrow']?.body_en || 'City Operations & Liaison';
-  const cityName = contact?.socials?.city_hub_name || 'Bhimavaram';
-  const title = safeBlocks['contact.hubs.title']?.body_en || `${cityName} Operations Hub`;
-  const subtitle = safeBlocks['contact.hubs.subtitle']?.body_en ||
-    `Dedicated companion coordinators active across leading hospitals in ${cityName}.`;
 
   let customHubs = null;
   if (safeBlocks['contact.hubs.list']?.body_en) {
     try {
-      customHubs = JSON.parse(safeBlocks['contact.hubs.list'].body_en);
+      const parsed = JSON.parse(safeBlocks['contact.hubs.list'].body_en);
+      if (Array.isArray(parsed) && parsed.length > 0) customHubs = parsed;
     } catch {
       customHubs = null;
     }
   }
 
-  const defaultCoverage = contact?.socials?.city_hub_coverage
-    || (hospitalsCount
-        ? `Dedicated accompaniment across ${hospitalsCount} accredited partner hospitals in ${cityName}`
-        : `Dedicated accompaniment across accredited partner hospitals in ${cityName}`);
+  const address = contact?.address_en || null;
+  const cityName = contact?.socials?.city_hub_name || null;
 
-  const activeHubs = customHubs || [
-    {
-      city: cityName,
-      badge: 'Primary Operations Hub',
-      address: contact?.address_en || 'Main Road, Bhimavaram, West Godavari District, Andhra Pradesh 534201',
-      hospitals: defaultCoverage,
-    }
-  ];
+  // Fall back to a single entry built from real contact settings only.
+  const activeHubs = customHubs || (address || cityName ? [{ city: cityName, address }] : []);
 
-  if (!activeHubs || activeHubs.length === 0) return null;
+  const eyebrow = safeBlocks['contact.hubs.eyebrow']?.body_en || null;
+  const title = safeBlocks['contact.hubs.title']?.body_en || null;
+  const subtitle = safeBlocks['contact.hubs.subtitle']?.body_en || null;
+
+  if (activeHubs.length === 0) return null;
 
   return (
     <div className="contact-hubs-box">
-      <div className="contact-hubs-header">
-        <div>
-          <span className="contact-channel-eyebrow" style={{ color: 'var(--pub-primary-container)' }}>
-            {eyebrow}
-          </span>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '0.25rem 0 0 0', color: 'var(--pub-on-surface)' }}>
-            {title}
-          </h2>
+      {(eyebrow || title || subtitle) && (
+        <div className="contact-hubs-header">
+          <div>
+            {eyebrow && (
+              <span className="contact-channel-eyebrow" style={{ color: 'var(--pub-primary-container)' }}>
+                {eyebrow}
+              </span>
+            )}
+            {title && (
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 700, margin: '0.25rem 0 0 0', color: 'var(--pub-on-surface)' }}>
+                {title}
+              </h2>
+            )}
+          </div>
+          {subtitle && (
+            <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--pub-on-variant)', maxWidth: '420px', lineHeight: 1.5 }}>
+              {subtitle}
+            </p>
+          )}
         </div>
-        <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--pub-on-variant)', maxWidth: '420px', lineHeight: 1.5 }}>
-          {subtitle}
-        </p>
-      </div>
+      )}
 
       <div className="contact-hubs-grid">
-        {activeHubs.map((hub) => (
-          <div key={hub.city} className="contact-hub-card">
+        {activeHubs.map((hub, idx) => (
+          <div key={hub.city || hub.address || idx} className="contact-hub-card">
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--pub-on-surface)' }}>
-                  {hub.city}
-                </span>
-                <span className="contact-hub-badge">
-                  {hub.badge || 'Operations Hub'}
-                </span>
-              </div>
-              <p style={{ fontSize: '0.8125rem', color: 'var(--pub-on-variant)', lineHeight: 1.55, margin: 0 }}>
-                {hub.address}
-              </p>
+              {(hub.city || hub.badge) && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  {hub.city && (
+                    <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--pub-on-surface)' }}>
+                      {hub.city}
+                    </span>
+                  )}
+                  {hub.badge && (
+                    <span className="contact-hub-badge">
+                      {hub.badge}
+                    </span>
+                  )}
+                </div>
+              )}
+              {hub.address && (
+                <p style={{ fontSize: '0.8125rem', color: 'var(--pub-on-variant)', lineHeight: 1.55, margin: 0 }}>
+                  {hub.address}
+                </p>
+              )}
             </div>
             {hub.hospitals && (
               <div style={{

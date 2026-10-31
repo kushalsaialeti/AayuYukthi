@@ -69,7 +69,8 @@ export async function listCustomerDrafts(db, ownerId) {
           AND (d.payload->>'hospital_id') ~ '^[0-9a-fA-F-]{36}$'
           AND h.id = (d.payload->>'hospital_id')::uuid
      WHERE d.owner_user_id = $1
-     ORDER BY d.updated_at DESC`,
+     ORDER BY d.updated_at DESC
+     LIMIT 50`,
     [ownerId, ACTIVE_STATUS_LIST],
   );
   return rows.map((r) => {
@@ -326,8 +327,10 @@ export async function getCustomerRequest(db, ownerId, id) {
   if (!rows[0]) throw httpError(404, 'NOT_FOUND', 'Request not found');
   const history = (
     await db.query(
-      `SELECT to_status, customer_message, created_at FROM request_status_history
-       WHERE request_id = $1 ORDER BY created_at ASC`,
+      `SELECT to_status, customer_message, created_at FROM (
+         SELECT to_status, customer_message, created_at FROM request_status_history
+         WHERE request_id = $1 ORDER BY created_at DESC LIMIT 200
+       ) recent ORDER BY created_at ASC`,
       [id],
     )
   ).rows.map((h) => ({ status: h.to_status, message: h.customer_message, at: h.created_at }));

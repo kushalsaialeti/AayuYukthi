@@ -11,7 +11,7 @@ import { SectionHead, SectionHeadCenter } from '../components/public/SectionHead
 import { StepsPreview, Pillars } from '../components/public/Steps.jsx';
 import { ServicesGrid, HospitalsGrid } from '../components/public/Cards.jsx';
 import { FamilyCommunication } from '../components/public/FamilyCommunication.jsx';
-import { TestimonialCards, FaqAccordion, FinalCta } from '../components/public/Closing.jsx';
+import { FaqAccordion, FinalCta } from '../components/public/Closing.jsx';
 
 // CMS block keys fetched in ONE batch request
 const BLOCK_KEYS = [
@@ -41,7 +41,11 @@ const BLOCK_KEYS = [
 const textOf = (blocks, key) => blocks?.[key]?.body_en ?? blocks?.[key]?.title_en ?? null;
 
 export function Home({ t, locale, setLocale, user }) {
-  const [data, setData] = useState(null);
+  // Granular content fetches: each section pulls only what it renders (the old
+  // combined home bundle endpoint is gone).
+  const [hero, setHero] = useState(null);
+  const [testimonials, setTestimonials] = useState(null);
+  const [faqs, setFaqs] = useState(null);
   const [services, setServices] = useState(null);
   const [hospitals, setHospitals] = useState(null);
   const [blocks, setBlocks] = useState(null);
@@ -52,13 +56,17 @@ export function Home({ t, locale, setLocale, user }) {
   const load = async () => {
     setError(null);
     try {
-      const [home, svc, hosp, blk] = await Promise.all([
-        api.home(),
+      const [heroRes, svc, hosp, blk, testiRes, faqRes] = await Promise.all([
+        api.heroSlides(),
         api.services({ limit: 6 }),
         api.hospitals({ limit: 4 }),
         api.blocks(BLOCK_KEYS),
+        api.testimonials({ limit: 6 }),
+        api.faqs({ limit: 6 }),
       ]);
-      setData(home);
+      setHero(heroRes ?? []);
+      setTestimonials(testiRes?.data ?? []);
+      setFaqs(faqRes?.data ?? []);
       setServices(svc.data);
       setHospitals(hosp.data);
       setBlocks(blk);
@@ -75,7 +83,7 @@ export function Home({ t, locale, setLocale, user }) {
 
   const items = useMemo(() => {
     const list = [];
-    for (const s of data?.hero ?? []) {
+    for (const s of hero ?? []) {
       list.push({ entity_type: 'hero_slides', entity_id: s.id, field: 'title_en' });
       list.push({ entity_type: 'hero_slides', entity_id: s.id, field: 'description_en' });
     }
@@ -87,11 +95,11 @@ export function Home({ t, locale, setLocale, user }) {
       list.push({ entity_type: 'hospitals', entity_id: h.id, field: 'name_en' });
       list.push({ entity_type: 'hospitals', entity_id: h.id, field: 'description_en' });
     }
-    for (const f of data?.faqs ?? []) {
+    for (const f of faqs ?? []) {
       list.push({ entity_type: 'faqs', entity_id: f.id, field: 'question_en' });
       list.push({ entity_type: 'faqs', entity_id: f.id, field: 'answer_en' });
     }
-    for (const item of data?.testimonials ?? []) {
+    for (const item of testimonials ?? []) {
       list.push({ entity_type: 'testimonials', entity_id: item.id, field: 'quote_en' });
     }
     for (const [key, b] of Object.entries(blocks ?? {})) {
@@ -99,7 +107,7 @@ export function Home({ t, locale, setLocale, user }) {
       if (b?.body_en) list.push({ entity_type: 'content_blocks', entity_id: key, field: 'body_en' });
     }
     return list;
-  }, [data, services, hospitals, blocks]);
+  }, [hero, testimonials, faqs, services, hospitals, blocks]);
 
   const tx = useTranslatedText(locale, items);
   const btx = (key, field = 'body_en') => {
@@ -109,7 +117,7 @@ export function Home({ t, locale, setLocale, user }) {
   };
 
   if (error) return <LoadError t={t} onRetry={load} />;
-  if (!data || !blocks) {
+  if (!hero || !testimonials || !faqs || !blocks) {
     return (
       <div className="pub-container" style={{ paddingTop: 48, paddingBottom: 56 }} aria-busy="true" aria-live="polite">
         <div className="pub-skeleton" style={{ height: 28, width: '40%', marginBottom: 12 }} />
@@ -147,7 +155,7 @@ export function Home({ t, locale, setLocale, user }) {
           secondaryUrl: textOf(blocks, 'home.hero.secondary_url'),
           journeyLabel: btx('home.journey.label'),
         }}
-        slides={data.hero}
+        slides={hero}
         t={t}
         tx={tx}
         locale={locale}
@@ -262,7 +270,7 @@ export function Home({ t, locale, setLocale, user }) {
                 Always Beside You
               </h3>
               <p className="body" style={{ fontSize: '0.875rem', lineHeight: 1.55, color: 'var(--pub-on-variant)' }}>
-                A verified companion meets your loved one at the hospital entrance and stays with them throughout the visit.
+                A care companion meets your loved one at the hospital entrance and stays with them throughout the visit.
               </p>
             </div>
 
@@ -304,7 +312,7 @@ export function Home({ t, locale, setLocale, user }) {
                 <span className="material-symbols-outlined" style={{ fontSize: '26px' }}>verified_user</span>
               </div>
               <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: '0 0 0.5rem', color: 'var(--pub-on-surface)' }}>
-                100% Independent
+                Completely Independent
               </h3>
               <p className="body" style={{ fontSize: '0.875rem', lineHeight: 1.55, color: 'var(--pub-on-variant)' }}>
                 Fixed, upfront pricing. We never take referral fees or commissions from doctors, hospitals, or medical labs.
@@ -339,24 +347,16 @@ export function Home({ t, locale, setLocale, user }) {
                 Speak Directly with Our Care Team
               </h3>
               <p style={{ fontSize: '0.875rem', color: 'var(--pub-on-variant)', lineHeight: 1.5, margin: '0 0 1.25rem' }}>
-                Have questions about hospital accompaniment, custom timings, or elderly wheelchair pickup? Our counselors are available 7 days a week.
+                Have questions about hospital accompaniment, custom timings, or elderly wheelchair pickup? Reach our care desk.
               </p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
-                <a
-                  href="tel:180022982273"
+                <Link
+                  to="/contact"
                   className="pub-btn"
                   style={{ fontSize: '0.875rem', padding: '0.6rem 1.1rem' }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>call</span>
-                  <span>1800-AAYU-CARE</span>
-                </a>
-                <Link
-                  to="/contact"
-                  className="pub-btn secondary"
-                  style={{ fontSize: '0.875rem', padding: '0.6rem 1.1rem' }}
-                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>support_agent</span>
                   <span>Visit Contact Desk</span>
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_forward</span>
                 </Link>
               </div>
             </div>
@@ -394,7 +394,7 @@ export function Home({ t, locale, setLocale, user }) {
       </section>
 
       {/* 8. FAQ */}
-      {data.faqs.length > 0 && (
+      {faqs.length > 0 && (
         <section className="pub-section">
           <div className="pub-container">
             <SectionHeadCenter
@@ -402,7 +402,7 @@ export function Home({ t, locale, setLocale, user }) {
               title={btx('home.faq.title') ?? t.faqsTitle}
               sub={btx('home.faq.sub')}
             />
-            <FaqAccordion faqs={data.faqs} tx={tx} />
+            <FaqAccordion faqs={faqs} tx={tx} />
           </div>
         </section>
       )}

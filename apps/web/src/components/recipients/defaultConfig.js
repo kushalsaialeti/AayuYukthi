@@ -73,7 +73,8 @@ export const DEFAULT_RECIPIENT_CMS_CONFIG = {
   languages: ['Telugu', 'English', 'Hindi'],
   guarantee: {
     title: 'AayuYukthi Companion Guarantee',
-    description: 'Every companion is police-verified, CPR trained, and equipped with our digital hospital floor-plan GPS.',
+    description:
+      'Companions are matched to your loved one based on spoken language, mobility needs, and the requirements of the visit.',
   },
   nextSteps: [
     {

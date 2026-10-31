@@ -16,7 +16,7 @@ export function Footer({ t, contact }) {
             <p style={{ color: 'var(--pub-on-variant)', maxWidth: '24rem' }}>{t.footerTagline}</p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem', marginTop: '.5rem', fontSize: 13, color: 'var(--pub-on-variant)' }}>
               <Icon name="verified_user" size={20} />
-              <span>{t.footerTrust ?? 'Verified companions & logistics'}</span>
+              <span>{t.footerTrust ?? 'Care companions & logistics'}</span>
             </div>
           </div>
           <nav aria-label="Quick links">
@@ -67,8 +67,8 @@ export function Footer({ t, contact }) {
         <div className="pub-footer-base">
           <p style={{ margin: 0 }}>© {year} {t.brand}. {t.footerLegal ?? 'Care coordination services. Not an emergency medical service or hospital.'}</p>
           <div style={{ display: 'flex', gap: '1.5rem' }}>
-            <Link to="/about">Privacy Policy</Link>
-            <Link to="/about">Terms &amp; Conditions</Link>
+            <Link to="/privacy">Privacy Policy</Link>
+            <Link to="/terms">Terms &amp; Conditions</Link>
           </div>
         </div>
       </div>

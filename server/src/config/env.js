@@ -16,6 +16,9 @@ const envSchema = z.object({
   KEEP_ALIVE_URL: z.string().optional(),
   KEEP_ALIVE_INTERVAL_MINUTES: z.coerce.number().int().min(1).max(60).default(8),
   KEEP_ALIVE_DISABLED: z.coerce.boolean().default(false),
+  // Admin recipient for RED ALERT security emails (empty → events stay in
+  // Operations → Security and the FATAL log only).
+  SECURITY_ADMIN_EMAIL: z.string().optional(),
 });
 
 const isTestRun = process.env.NODE_ENV === 'test' || process.env.VITEST === 'true';
@@ -35,6 +38,7 @@ const parsed = envSchema.safeParse({
   KEEP_ALIVE_URL: process.env.KEEP_ALIVE_URL,
   KEEP_ALIVE_INTERVAL_MINUTES: process.env.KEEP_ALIVE_INTERVAL_MINUTES,
   KEEP_ALIVE_DISABLED: process.env.KEEP_ALIVE_DISABLED,
+  SECURITY_ADMIN_EMAIL: process.env.SECURITY_ADMIN_EMAIL,
 });
 
 if (!parsed.success) {
@@ -48,6 +52,7 @@ if (!parsed.success) {
 export const env = {
   ...parsed.data,
   corsOrigins: parsed.data.CORS_ORIGIN.split(',').map((s) => s.trim()).filter(Boolean),
+  securityAdminEmail: (parsed.data.SECURITY_ADMIN_EMAIL ?? '').trim(),
   // Supabase: the app talks to the pooler (6543); migrations run on the direct host.
   migrationUrl: parsed.data.DIRECT_DATABASE_URL ?? parsed.data.DATABASE_URL,
   isProd: parsed.data.NODE_ENV === 'production',

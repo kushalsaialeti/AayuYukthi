@@ -11,6 +11,7 @@ export function pick(row, fields) {
 
 const PUBLIC_USER_FIELDS = [
   'id',
+  'public_id',
   'email',
   'phone_e164',
   'full_name',

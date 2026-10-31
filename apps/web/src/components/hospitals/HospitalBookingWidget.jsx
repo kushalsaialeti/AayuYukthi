@@ -21,10 +21,11 @@ export function HospitalBookingWidget({ hospital }) {
     ? hospital.station_lead
     : null;
 
-  const phone = hospital?.contact_phone || '180022982273';
-  const visitingHours = hospital?.visiting_hours_en || '10:00 AM – 12:00 PM | 05:00 PM – 07:00 PM';
-  const parkingInfo = hospital?.parking_info_en || 'Available at Gate 1 & Gate 4 (Valet Available)';
-  const pharmacyInfo = hospital?.pharmacy_info_en || '24/7 Service on Ground Floor';
+  // Only real hospital-provided details render — no invented numbers or hours.
+  const phone = hospital?.contact_phone || null;
+  const visitingHours = hospital?.visiting_hours_en || null;
+  const parkingInfo = hospital?.parking_info_en || null;
+  const pharmacyInfo = hospital?.pharmacy_info_en || null;
 
   const handleBooking = (e) => {
     e.preventDefault();
@@ -74,7 +75,6 @@ export function HospitalBookingWidget({ hospital }) {
               >
                 <div className="hsp-package-type">Half-Day</div>
                 <div className="hsp-package-hours">Up to 4 hours</div>
-                <div className="hsp-package-price">₹1,299</div>
               </button>
 
               <button
@@ -84,7 +84,6 @@ export function HospitalBookingWidget({ hospital }) {
               >
                 <div className="hsp-package-type">Full-Day</div>
                 <div className="hsp-package-hours">Up to 8 hours</div>
-                <div className="hsp-package-price">₹2,199</div>
               </button>
             </div>
           </div>
@@ -139,10 +138,6 @@ export function HospitalBookingWidget({ hospital }) {
             <span>Request Care at {hospital?.name_en}</span>
             <Icon name="arrow_forward" size={18} />
           </button>
-
-          <p className="hsp-booking-guarantee-note">
-            Zero cancellation charge up to 6 hours before slot. Background-verified companions with photo identification.
-          </p>
         </form>
       </div>
 
@@ -192,49 +187,59 @@ export function HospitalBookingWidget({ hospital }) {
         </div>
       )}
 
-      {/* 3. Immediate On-Duty Desk Help */}
-      <div className="hsp-urgent-help-card">
-        <div className="hsp-urgent-title-row">
-          <Icon name="emergency" size={22} className="text-cyan" />
-          <span className="hsp-urgent-title">Need Assistance Today?</span>
+      {/* 3. Direct Facility Contact (only when the hospital lists a number) */}
+      {phone && (
+        <div className="hsp-urgent-help-card">
+          <div className="hsp-urgent-title-row">
+            <Icon name="emergency" size={22} className="text-cyan" />
+            <span className="hsp-urgent-title">Hospital Contact Line</span>
+          </div>
+          <p className="hsp-urgent-desc">
+            Direct contact number listed for {hospital?.name_en}.
+          </p>
+          <a href={`tel:${phone}`} className="hsp-btn-urgent-call">
+            <Icon name="phone_in_talk" size={20} />
+            <span>Call: {phone}</span>
+          </a>
         </div>
-        <p className="hsp-urgent-desc">
-          Visiting {hospital?.name_en} in the next 2 hours? Call our dedicated on-campus coordinator desk.
-        </p>
-        <a href={`tel:${phone}`} className="hsp-btn-urgent-call">
-          <Icon name="phone_in_talk" size={20} />
-          <span>Call Desk: {phone}</span>
-        </a>
-      </div>
+      )}
 
       {/* 4. Practical Campus Details Box */}
-      <div className="hsp-logistics-card">
-        <h3 className="hsp-logistics-title">Practical Campus Details</h3>
+      {(visitingHours || parkingInfo || pharmacyInfo) && (
+        <div className="hsp-logistics-card">
+          <h3 className="hsp-logistics-title">Practical Campus Details</h3>
 
-        <div className="hsp-logistics-row">
-          <Icon name="schedule" size={18} className="text-secondary" />
-          <div>
-            <div className="hsp-logistics-label">Visiting Hours:</div>
-            <div className="hsp-logistics-val">{visitingHours}</div>
-          </div>
-        </div>
+          {visitingHours && (
+            <div className="hsp-logistics-row">
+              <Icon name="schedule" size={18} className="text-secondary" />
+              <div>
+                <div className="hsp-logistics-label">Visiting Hours:</div>
+                <div className="hsp-logistics-val">{visitingHours}</div>
+              </div>
+            </div>
+          )}
 
-        <div className="hsp-logistics-row">
-          <Icon name="local_parking" size={18} className="text-secondary" />
-          <div>
-            <div className="hsp-logistics-label">Valet &amp; Parking:</div>
-            <div className="hsp-logistics-val">{parkingInfo}</div>
-          </div>
-        </div>
+          {parkingInfo && (
+            <div className="hsp-logistics-row">
+              <Icon name="local_parking" size={18} className="text-secondary" />
+              <div>
+                <div className="hsp-logistics-label">Valet &amp; Parking:</div>
+                <div className="hsp-logistics-val">{parkingInfo}</div>
+              </div>
+            </div>
+          )}
 
-        <div className="hsp-logistics-row">
-          <Icon name="local_pharmacy" size={18} className="text-secondary" />
-          <div>
-            <div className="hsp-logistics-label">Central Pharmacy:</div>
-            <div className="hsp-logistics-val">{pharmacyInfo}</div>
-          </div>
+          {pharmacyInfo && (
+            <div className="hsp-logistics-row">
+              <Icon name="local_pharmacy" size={18} className="text-secondary" />
+              <div>
+                <div className="hsp-logistics-label">Central Pharmacy:</div>
+                <div className="hsp-logistics-val">{pharmacyInfo}</div>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
+      )}
     </div>
   );
 }

@@ -10,10 +10,11 @@ export function HospitalCtaBanner({ ctaBlocks = {}, contactInfo = null }) {
   const body =
     ctaBlocks['hospitals.cta.body']?.body_en ||
     ctaBlocks['hospitals.cta.body']?.title_en ||
-    'Book a verified coordinator in under 2 minutes. We can meet you at your doorstep or directly at the hospital gate.';
+    null;
 
-  const phone = contactInfo?.phone || '+91 8816 223344';
-  const telHref = `tel:${phone.replace(/[^0-9+]/g, '')}`;
+  // The call button renders only with a real configured number.
+  const phone = contactInfo?.phone || null;
+  const telHref = phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : null;
 
   return (
     <section className="hsp-bottom-cta">
@@ -25,15 +26,17 @@ export function HospitalCtaBanner({ ctaBlocks = {}, contactInfo = null }) {
             </div>
             <div>
               <h3 className="hsp-cta-title">{title}</h3>
-              <p className="hsp-cta-desc">{body}</p>
+              {body && <p className="hsp-cta-desc">{body}</p>}
             </div>
           </div>
 
           <div className="hsp-cta-buttons">
-            <a href={telHref} className="hsp-cta-call">
-              <Icon name="call" size={20} className="text-primary" />
-              <span>Call Helpline</span>
-            </a>
+            {telHref && (
+              <a href={telHref} className="hsp-cta-call">
+                <Icon name="call" size={20} className="text-primary" />
+                <span>Call Us</span>
+              </a>
+            )}
             <Link to="/request-care" className="hsp-cta-book">
               <span>Request Care Now</span>
               <Icon name="arrow_forward" size={18} />

@@ -547,17 +547,72 @@ body {
 /* Forms System */
 .ops-form-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 1.25rem;
+  width: 100%;
+}
+
+.ops-form-grid > * {
+  min-width: 0;
+  max-width: 100%;
 }
 
 @media (min-width: 768px) {
   .ops-form-grid-2 {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .ops-form-grid-3 {
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+}
+
+/* Dedicated Flexbox System for Uploading Fields */
+.ops-upload-fields-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.ops-upload-fields-title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--ops-on-surface-variant);
+  letter-spacing: 0.02em;
+}
+
+.ops-upload-fields-flex {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.ops-upload-fields-flex > * {
+  flex: 1 1 340px;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.ops-image-upload-card {
+  background: var(--ops-surface-container-lowest, #ffffff);
+  border: 1px solid var(--ops-outline-subtle, #e2e8f0);
+  border-radius: var(--ops-radius-lg, 10px);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .ops-form-field {
@@ -651,6 +706,56 @@ body {
   }
 }
 
+/* Route-level lazy loading fallback (React.Suspense boundary) */
+.ops-route-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 45vh;
+  color: var(--ops-outline);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.ops-spinner {
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--ops-radius-pill);
+  border: 3px solid var(--ops-surface-container-high);
+  border-top-color: var(--ops-primary);
+  animation: opsSpin 0.8s linear infinite;
+}
+
+@keyframes opsSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Generic rotation used by inline "syncing" icons (e.g. Dashboard refresh) */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Security Monitor: red-alert pulse for critical/high cards when events > 0 */
+.ops-alarm-pulse {
+  animation: opsAlarmPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes opsAlarmPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(186, 26, 26, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 7px rgba(186, 26, 26, 0);
+  }
+}
+
 /* ==========================================================================
    Responsive & Adaptive Media Queries (Mobile, Tablet, Desktop)
    ========================================================================== */
@@ -708,7 +813,12 @@ body {
 @media (max-width: 768px) {
   .ops-form-grid-2,
   .ops-form-grid-3 {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .ops-upload-fields-flex > * {
+    flex: 1 1 100% !important;
+    width: 100% !important;
   }
 
   .ops-top-header {
