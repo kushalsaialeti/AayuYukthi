@@ -7,7 +7,7 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   DIRECT_DATABASE_URL: z.string().min(1).optional(),
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 chars'),
-  CORS_ORIGIN: z.string().default('http://localhost:5173,http://localhost:5174'),
+  CORS_ORIGIN: z.string().default('http://localhost:5173,http://localhost:5174,https://aayuyukthi.vercel.app,https://aayuyukthi-operations.vercel.app,https://aayuyukthi-ops.vercel.app'),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
   PG_POOL_MAX: z.coerce.number().int().min(2).max(50).default(10),
   RESEND_API_KEY: z.string().optional(),
@@ -51,7 +51,7 @@ if (!parsed.success) {
 
 export const env = {
   ...parsed.data,
-  corsOrigins: parsed.data.CORS_ORIGIN.split(',').map((s) => s.trim()).filter(Boolean),
+  corsOrigins: parsed.data.CORS_ORIGIN.split(',').map((s) => s.trim().replace(/\/+$/, '')).filter(Boolean),
   securityAdminEmail: (parsed.data.SECURITY_ADMIN_EMAIL ?? '').trim(),
   // Supabase: the app talks to the pooler (6543); migrations run on the direct host.
   migrationUrl: parsed.data.DIRECT_DATABASE_URL ?? parsed.data.DATABASE_URL,

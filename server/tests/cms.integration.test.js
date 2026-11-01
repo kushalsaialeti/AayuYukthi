@@ -120,6 +120,25 @@ describe('hospitals CMS vertical slice', () => {
     const other = await request(app).get('/api/v1/hospitals?city=Hyderabad');
     expect(other.body.data.map((h) => h.slug)).not.toContain('sunrise-hospitals');
   });
+
+  it('updates hospital with image_url and null optional fields without 400 validation error', async () => {
+    const created = await auth(request(app).post('/api/v1/ops/hospitals')).send({
+      name_en: 'Abhiram Orthopaedic Hospital', city: 'Bhimavaram', state: 'Andhra Pradesh',
+    });
+    expect(created.status).toBe(201);
+    const id = created.body.data.id;
+
+    const patchRes = await auth(request(app).patch(`/api/v1/ops/hospitals/${id}`)).send({
+      image_url: 'https://example.com/hospital-photo.webp',
+      wait_info_en: null,
+      campus_highlight_en: null,
+      address_en: null,
+    });
+    expect(patchRes.status).toBe(200);
+    expect(patchRes.body.data.image_url).toBe('https://example.com/hospital-photo.webp');
+    expect(patchRes.body.data.wait_info_en).toBe('');
+    expect(patchRes.body.data.campus_highlight_en).toBe('');
+  });
 });
 
 describe('content CMS vertical slice', () => {

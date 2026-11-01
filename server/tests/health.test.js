@@ -37,6 +37,23 @@ describe('Phase 0 foundation', () => {
     expect(res.headers['access-control-allow-origin']).toBe('https://aayuyukthi.vercel.app');
   });
 
+  it('allows CORS preflight from AayuYukthi Vercel deployments and preview URLs', async () => {
+    const app = createApp();
+    const origins = [
+      'https://aayuyukthi.vercel.app',
+      'https://aayuyukthi-operations.vercel.app',
+      'https://aayuyukthi-git-main.vercel.app',
+    ];
+    for (const origin of origins) {
+      const res = await request(app)
+        .options('/api/v1/content/contact')
+        .set('Origin', origin)
+        .set('Access-Control-Request-Method', 'GET');
+      expect(res.status).toBe(204);
+      expect(res.headers['access-control-allow-origin']).toBe(origin);
+    }
+  });
+
   it('serves routes at root without /api/v1 prefix as fallback', async () => {
     const app = createApp();
     const res = await request(app).get('/health');

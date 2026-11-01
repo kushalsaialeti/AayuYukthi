@@ -71,11 +71,17 @@ export function createApp({ db } = {}) {
         return callback(null, true);
       }
 
-      // Automatically allow all Vercel deployments (*.vercel.app) ONLY outside
-      // production — in production any stranger's Vercel app is an attacker
-      // origin and must not read credentialed responses.
+      // Always allow official AayuYukthi Vercel deployments (production, previews, branch deploys, ops portal)
       if (
-        /^https:\/\/[a-zA-Z0-9_\-.]+\.vercel\.app$/.test(cleanOrigin) && !env.isProd
+        /^https:\/\/(?:[a-zA-Z0-9_\-.]+\.)?aayuyukthi(?:-[a-zA-Z0-9_\-.]+)?\.vercel\.app$/i.test(cleanOrigin) ||
+        cleanOrigin === 'https://aayuyukthi.vercel.app'
+      ) {
+        return callback(null, true);
+      }
+
+      // Automatically allow other Vercel deployments (*.vercel.app) in non-production
+      if (
+        /^https:\/\/[a-zA-Z0-9_\-.]+\.vercel\.app$/i.test(cleanOrigin) && !env.isProd
       ) {
         return callback(null, true);
       }
